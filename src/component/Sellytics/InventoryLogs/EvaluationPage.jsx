@@ -1,16 +1,16 @@
 
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  DollarSign, Package, TrendingUp, AlertTriangle, 
+import {
+  DollarSign, Package, TrendingUp, AlertTriangle,
   BarChart2, PieChart as PieChartIcon, ArrowUp, ArrowDown
 } from 'lucide-react';
-import { 
+import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell
 } from 'recharts';
 
-import {useCurrency} from '../../context/currencyContext'; // Adjust path if needed
+import { useCurrency } from '../../context/currencyContext'; // Adjust path if needed
 
 const COLORS = ['#6366f1', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 
@@ -107,7 +107,7 @@ export default function EvaluationPage({ inventory }) {
             </div>
             <div className="min-w-0">
               <p className="text-[9px] sm:text-xs text-slate-500 leading-tight">Cost</p>
-              <p className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate">
+              <p className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate" title={formatPrice(metrics.totalCostValue)}>
                 {formatPrice(metrics.totalCostValue)}
               </p>
             </div>
@@ -126,7 +126,7 @@ export default function EvaluationPage({ inventory }) {
             </div>
             <div className="min-w-0">
               <p className="text-[9px] sm:text-xs text-slate-500 leading-tight">Retail</p>
-              <p className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate">
+              <p className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate" title={formatPrice(metrics.totalRetailValue)}>
                 {formatPrice(metrics.totalRetailValue)}
               </p>
             </div>
@@ -159,13 +159,12 @@ export default function EvaluationPage({ inventory }) {
           className="bg-white dark:bg-slate-800 rounded-lg sm:rounded-xl p-2.5 sm:p-4 border border-slate-200 dark:border-slate-700"
         >
           <div className="flex items-start gap-2 sm:gap-3 flex-col sm:flex-row">
-            <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${
-              metrics.profitMargin >= 30 
-                ? 'bg-emerald-100 dark:bg-emerald-900/30' 
-                : metrics.profitMargin >= 15 
+            <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${metrics.profitMargin >= 30
+                ? 'bg-emerald-100 dark:bg-emerald-900/30'
+                : metrics.profitMargin >= 15
                   ? 'bg-amber-100 dark:bg-amber-900/30'
                   : 'bg-red-100 dark:bg-red-900/30'
-            }`}>
+              }`}>
               {metrics.profitMargin >= 20 ? (
                 <ArrowUp className={`w-4 h-4 sm:w-5 sm:h-5 ${metrics.profitMargin >= 30 ? 'text-emerald-600' : 'text-amber-600'}`} />
               ) : (
@@ -222,13 +221,13 @@ export default function EvaluationPage({ inventory }) {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={topProducts.slice(0, 5)} layout="vertical" margin={{ top: 5, right: 10, left: 60, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                <XAxis 
-                  type="number" 
+                <XAxis
+                  type="number"
                   tickFormatter={(v) => v >= 1000 ? (v / 1000).toFixed(0) + 'k' : v}
                   tick={{ fontSize: 11 }}
                 />
                 <YAxis type="category" dataKey="name" width={55} tick={{ fontSize: 10 }} />
-                <Tooltip 
+                <Tooltip
                   formatter={(value) => formatPrice(value)}
                   contentStyle={{ background: '#1e293b', border: 'none', borderRadius: '6px', color: '#fff', fontSize: '12px' }}
                 />
@@ -260,7 +259,7 @@ export default function EvaluationPage({ inventory }) {
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip 
+                <Tooltip
                   formatter={(value) => formatPrice(value)}
                   contentStyle={{ background: '#1e293b', border: 'none', borderRadius: '6px', color: '#fff', fontSize: '12px' }}
                 />
@@ -283,7 +282,7 @@ export default function EvaluationPage({ inventory }) {
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             <p className="text-indigo-100 text-[9px] sm:text-xs">Potential Profit</p>
-            <p className="text-lg sm:text-2xl md:text-3xl font-bold mt-1 truncate">{formatPrice(metrics.potentialProfit)}</p>
+            <p className="text-lg sm:text-2xl md:text-3xl font-bold mt-1 truncate" title={formatPrice(metrics.potentialProfit)}>{formatPrice(metrics.potentialProfit)}</p>
             <p className="text-[9px] sm:text-xs text-indigo-200 mt-1 sm:mt-2 leading-tight">
               {metrics.totalUnits.toLocaleString()} units @ retail
             </p>

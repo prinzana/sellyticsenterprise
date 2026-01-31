@@ -44,9 +44,9 @@ export function useProductMutations(storeId, isOnline, supabaseRef, products, se
             last_updated: new Date().toISOString()
           }, { onConflict: ['dynamic_product_id', 'store_id'] });
 
-        // 3️⃣ Cache locally
+        // 3️⃣ Cache locally (real-time subscription will add to state)
         await offlineDB.cacheProducts([data], storeId);
-        setProducts(prev => [formatProduct(data), ...prev]);
+        // Note: Don't call setProducts here - the real-time subscription handles INSERT events
         toast.success('Product created online');
         return data;
       } else {
@@ -58,6 +58,14 @@ export function useProductMutations(storeId, isOnline, supabaseRef, products, se
       }
     } catch (err) {
       console.error('Create product error:', err);
+
+      // Check for duplicate product name constraint violation
+      if (err.code === '23505' || err.message?.includes('unique_store_product_name') || err.message?.includes('duplicate key')) {
+        const friendlyError = new Error(`A product named "${productData.name}" already exists in this store. Please use a different name.`);
+        friendlyError.isDuplicate = true;
+        throw friendlyError;
+      }
+
       toast.error(err.message || 'Failed to create product');
       throw err;
     }
@@ -66,79 +74,79 @@ export function useProductMutations(storeId, isOnline, supabaseRef, products, se
 
 
   const updateProduct = async (productId, updates, addedQty = 0) => {
-  if (!storeId) throw new Error('No store selected');
+    if (!storeId) throw new Error('No store selected');
 
-  try {
-    if (isOnline && supabaseRef.current) {
-      // 1️⃣ Update the product table
-      const { data: updated, error } = await supabaseRef.current
-        .from('dynamic_product')
-        .update(updates)
-        .eq('id', productId)
-        .select()
-        .single();
-      if (error) throw error;
+    try {
+      if (isOnline && supabaseRef.current) {
+        // 1️⃣ Update the product table
+        const { data: updated, error } = await supabaseRef.current
+          .from('dynamic_product')
+          .update(updates)
+          .eq('id', productId)
+          .select()
+          .single();
+        if (error) throw error;
 
-      // 2️⃣ Fetch current inventory
-      const { data: inv } = await supabaseRef.current
-        .from('dynamic_inventory')
-        .select('available_qty, quantity_sold')
-        .eq('dynamic_product_id', productId)
-        .eq('store_id', storeId)
-        .maybeSingle();
+        // 2️⃣ Fetch current inventory
+        const { data: inv } = await supabaseRef.current
+          .from('dynamic_inventory')
+          .select('available_qty, quantity_sold')
+          .eq('dynamic_product_id', productId)
+          .eq('store_id', storeId)
+          .maybeSingle();
 
-      let newQty = inv?.available_qty || 0;
+        let newQty = inv?.available_qty || 0;
 
-      // 3️⃣ Compute added quantity for unique products
-      if (updated.is_unique && updates.dynamic_product_imeis) {
-        const oldImeis = updated.dynamic_product_imeis
-          ? updated.dynamic_product_imeis.split(',').map(i => i.trim()).filter(Boolean)
-          : [];
+        // 3️⃣ Compute added quantity for unique products
+        if (updated.is_unique && updates.dynamic_product_imeis) {
+          const oldImeis = updated.dynamic_product_imeis
+            ? updated.dynamic_product_imeis.split(',').map(i => i.trim()).filter(Boolean)
+            : [];
 
-        const incomingImeis = updates.dynamic_product_imeis
-          .split(',')
-          .map(i => i.trim())
-          .filter(Boolean);
+          const incomingImeis = updates.dynamic_product_imeis
+            .split(',')
+            .map(i => i.trim())
+            .filter(Boolean);
 
-        // Only count the IMEIs that were newly added
-        const newlyAddedCount = incomingImeis.length - oldImeis.length;
-        newQty += newlyAddedCount > 0 ? newlyAddedCount : 0;
+          // Only count the IMEIs that were newly added
+          const newlyAddedCount = incomingImeis.length - oldImeis.length;
+          newQty += newlyAddedCount > 0 ? newlyAddedCount : 0;
+
+        } else {
+          // Non-unique product
+          newQty += (updates.purchase_qty || 0) + addedQty;
+        }
+
+        // 4️⃣ Upsert inventory
+        await supabaseRef.current
+          .from('dynamic_inventory')
+          .upsert({
+            dynamic_product_id: productId,
+            store_id: Number(storeId),
+            available_qty: newQty,
+            quantity_sold: inv?.quantity_sold || 0,
+            last_updated: new Date().toISOString()
+          }, { onConflict: ['dynamic_product_id', 'store_id'] });
+
+        // 5️⃣ Cache locally
+        await offlineDB.cacheProducts([updated], storeId);
+        setProducts(prev => prev.map(p => (p.id === productId ? formatProduct(updated) : p)));
+        toast.success('Product updated online');
+        return updated;
 
       } else {
-        // Non-unique product
-        newQty += (updates.purchase_qty || 0) + addedQty;
+        // Offline: queue update
+        const updated = await offlineDB.updateProduct(productId, updates);
+        setProducts(prev => prev.map(p => (p.id === productId ? formatProduct(updated) : p)));
+        toast('Product update queued for sync', { icon: '📴' });
+        return updated;
       }
-
-      // 4️⃣ Upsert inventory
-      await supabaseRef.current
-        .from('dynamic_inventory')
-        .upsert({
-          dynamic_product_id: productId,
-          store_id: Number(storeId),
-          available_qty: newQty,
-          quantity_sold: inv?.quantity_sold || 0,
-          last_updated: new Date().toISOString()
-        }, { onConflict: ['dynamic_product_id', 'store_id'] });
-
-      // 5️⃣ Cache locally
-      await offlineDB.cacheProducts([updated], storeId);
-      setProducts(prev => prev.map(p => (p.id === productId ? formatProduct(updated) : p)));
-      toast.success('Product updated online');
-      return updated;
-
-    } else {
-      // Offline: queue update
-      const updated = await offlineDB.updateProduct(productId, updates);
-      setProducts(prev => prev.map(p => (p.id === productId ? formatProduct(updated) : p)));
-      toast('Product update queued for sync', { icon: '📴' });
-      return updated;
+    } catch (err) {
+      console.error('Update product error:', err);
+      toast.error(err.message || 'Failed to update product');
+      throw err;
     }
-  } catch (err) {
-    console.error('Update product error:', err);
-    toast.error(err.message || 'Failed to update product');
-    throw err;
-  }
-};
+  };
 
 
 

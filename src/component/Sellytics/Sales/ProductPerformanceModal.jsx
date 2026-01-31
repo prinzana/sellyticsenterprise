@@ -4,7 +4,7 @@
  * @version 1.0.0
  */
 import React, { useState, useEffect } from 'react';
-import { 
+import {
   X, Package, DollarSign, TrendingUp, Users,
   Loader2, AlertCircle, BarChart3
 } from 'lucide-react';
@@ -30,7 +30,7 @@ export default function ProductPerformanceModal({
 
       try {
         const { currentStoreId } = getIdentity();
-        
+
         // Fetch sales for this product
         const { data: sales = [], error: salesError } = await supabase
           .from('dynamic_sales')
@@ -50,12 +50,34 @@ export default function ProductPerformanceModal({
         if (invError) throw invError;
 
         const inventory = invData?.[0] || {};
-        const remaining = inventory.available_qty || 0;
         const purchasePrice = product.purchase_price || 0;
         const sellingPrice = product.selling_price || 0;
 
+        // Calculate sold count from sales data
         const totalSold = sales.reduce((sum, s) => sum + Number(s.quantity || 0), 0);
         const totalRevenue = sales.reduce((sum, s) => sum + Number(s.amount || 0), 0);
+
+        // For unique items, calculate remaining stock from IMEIs - sold IMEIs
+        let remaining = inventory.available_qty || 0;
+
+        if (product.is_unique && product.dynamic_product_imeis) {
+          const allImeis = product.dynamic_product_imeis.split(',').map(i => i.trim()).filter(Boolean);
+
+          // Extract sold IMEIs from sales data
+          const soldImeiSet = new Set();
+          sales.forEach(sale => {
+            if (sale.status === 'sold' && sale.device_id) {
+              sale.device_id.split(',').forEach(id => {
+                soldImeiSet.add(id.trim());
+              });
+            }
+          });
+
+          // Calculate: Total IMEIs - Sold IMEIs
+          const availableImeis = allImeis.filter(imei => !soldImeiSet.has(imei));
+          remaining = availableImeis.length;
+        }
+
         const inventoryValue = remaining * purchasePrice;
         const potentialRevenue = remaining * sellingPrice;
 
@@ -66,7 +88,7 @@ export default function ProductPerformanceModal({
           sellerMap[seller] = (sellerMap[seller] || 0) + Number(s.quantity || 0);
         });
         const topSellers = Object.entries(sellerMap)
-          .sort(([,a], [,b]) => b - a)
+          .sort(([, a], [, b]) => b - a)
           .slice(0, 5);
 
         setStats({
@@ -89,7 +111,7 @@ export default function ProductPerformanceModal({
     };
 
     fetchStats();
-  }, [product?.id, product?.purchase_price, product?.selling_price]);
+  }, [product?.id, product?.purchase_price, product?.selling_price, product?.is_unique, product?.dynamic_product_imeis]);
 
   if (!product) return null;
 
@@ -124,7 +146,7 @@ export default function ProductPerformanceModal({
                 </p>
               </div>
             </div>
-            <button 
+            <button
               onClick={onClose}
               className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
             >
@@ -176,15 +198,15 @@ export default function ProductPerformanceModal({
 
                 {/* Pricing Info */}
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl">
+                  <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl min-w-0 overflow-hidden">
                     <p className="text-sm text-slate-500 mb-1">Purchase Price</p>
-                    <p className="text-lg font-bold text-slate-900 dark:text-white">
+                    <p className="text-base sm:text-lg font-bold text-slate-900 dark:text-white truncate" title={formatPrice(stats.purchasePrice)}>
                       {formatPrice(stats.purchasePrice)}
                     </p>
                   </div>
-                  <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl">
+                  <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl min-w-0 overflow-hidden">
                     <p className="text-sm text-slate-500 mb-1">Selling Price</p>
-                    <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
+                    <p className="text-base sm:text-lg font-bold text-emerald-600 dark:text-emerald-400 truncate" title={formatPrice(stats.sellingPrice)}>
                       {formatPrice(stats.sellingPrice)}
                     </p>
                   </div>
@@ -204,12 +226,11 @@ export default function ProductPerformanceModal({
                           className="flex justify-between items-center bg-white dark:bg-slate-800 p-3 rounded-lg"
                         >
                           <div className="flex items-center gap-3">
-                            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold ${
-                              i === 0 ? 'bg-yellow-100 text-yellow-700' :
+                            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold ${i === 0 ? 'bg-yellow-100 text-yellow-700' :
                               i === 1 ? 'bg-slate-100 text-slate-700' :
-                              i === 2 ? 'bg-orange-100 text-orange-700' :
-                              'bg-indigo-100 text-indigo-700'
-                            }`}>
+                                i === 2 ? 'bg-orange-100 text-orange-700' :
+                                  'bg-indigo-100 text-indigo-700'
+                              }`}>
                               {i + 1}
                             </div>
                             <span className="font-medium text-slate-900 dark:text-white text-sm truncate">
@@ -261,10 +282,10 @@ function MetricCard({ icon: Icon, label, value, color }) {
   };
 
   return (
-    <div className={`p-4 rounded-xl bg-gradient-to-br ${colors[color]} text-center`}>
-      <Icon className="w-6 h-6 mx-auto mb-2" />
-      <p className="text-xs text-slate-500 mb-1">{label}</p>
-      <p className="text-xl font-bold">{value}</p>
+    <div className={`p-3 sm:p-4 rounded-xl bg-gradient-to-br ${colors[color]} text-center min-w-0 overflow-hidden`}>
+      <Icon className="w-5 h-5 sm:w-6 sm:h-6 mx-auto mb-1.5 sm:mb-2" />
+      <p className="text-xs text-slate-500 mb-0.5 sm:mb-1">{label}</p>
+      <p className="text-xs sm:text-sm font-bold truncate" title={value}>{value}</p>
     </div>
   );
 }

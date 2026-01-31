@@ -25,7 +25,7 @@ const ProductCard = forwardRef(function ProductCard(
     isOffline,
     isPending,
     permissions,
- 
+
   },
   ref
 ) {
@@ -34,9 +34,9 @@ const ProductCard = forwardRef(function ProductCard(
 
 
 
- const formatPrice = (price) => {
+  const formatPrice = (price) => {
     if (!price && price !== 0) return 'N/A';
-    
+
     try {
       const formatter = new Intl.NumberFormat('en-US', {
         style: 'currency',
@@ -140,7 +140,7 @@ const ProductCard = forwardRef(function ProductCard(
 
       {/* Main Content */}
       <div className="w-full p-2 sm:p-2.5 md:p-3">
-        
+
         {/* Header Row: Icon + Title + Menu */}
         <div className="flex items-start gap-2 sm:gap-2.5 mb-2 sm:mb-2.5 min-w-0">
           {/* Product Icon */}
@@ -236,9 +236,9 @@ const ProductCard = forwardRef(function ProductCard(
         <div className="grid grid-cols-2 gap-1.5 sm:gap-2 mb-2 sm:mb-2.5">
           {/* Selling Price */}
           {product.selling_price != null && (
-            <div className="bg-gradient-to-br from-indigo-50 to-indigo-50/50 dark:from-indigo-900/20 dark:to-indigo-900/10 rounded-lg bg-indigo-200/50 dark:bg-indigo-900/30 p-2 sm:p-2.5 border border-indigo-200/50 dark:border-indigo-800/50">
+            <div className="bg-gradient-to-br from-indigo-50 to-indigo-50/50 dark:from-indigo-900/20 dark:to-indigo-900/10 rounded-lg bg-indigo-200/50 dark:bg-indigo-900/30 p-2 sm:p-2.5 border border-indigo-200/50 dark:border-indigo-800/50 min-w-0 overflow-hidden">
               <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-0.5">Price</p>
-              <p className="text-xs sm:text-sm font-bold text-indigo-600 dark:text-indigo-400 truncate">
+              <p className="text-xs sm:text-sm font-bold text-indigo-600 dark:text-indigo-400 truncate" title={formatPrice ? formatPrice(product.selling_price) : `$${Number(product.selling_price).toFixed(2)}`}>
                 {formatPrice ? formatPrice(product.selling_price) : `$${Number(product.selling_price).toFixed(2)}`}
               </p>
             </div>

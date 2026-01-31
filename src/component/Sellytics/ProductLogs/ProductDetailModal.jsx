@@ -16,10 +16,10 @@ export default function DetailModal({ product, storeId, formatPrice, isOpen, onC
 
   const allImeis = useMemo(() => {
     if (!product.dynamic_product_imeis) return [];
-    
+
     const imeis = product.dynamic_product_imeis.split(',').map(s => s.trim()).filter(Boolean);
     const sizes = product.device_size ? product.device_size.split(',').map(s => s.trim()) : [];
-    
+
     return imeis.map((imei, index) => ({
       imei,
       size: sizes[index] || ''
@@ -28,7 +28,7 @@ export default function DetailModal({ product, storeId, formatPrice, isOpen, onC
 
   const filteredImeis = useMemo(() => {
     if (!searchTerm) return allImeis;
-    
+
     const query = searchTerm.toLowerCase();
     return allImeis.filter(item =>
       item.imei.toLowerCase().includes(query) ||
@@ -51,7 +51,7 @@ export default function DetailModal({ product, storeId, formatPrice, isOpen, onC
     const fetchSoldStatus = async () => {
       try {
         setLoading(true);
-        
+
         const { data, error } = await supabase
           .from('dynamic_sales')
           .select('device_id')
@@ -118,27 +118,27 @@ export default function DetailModal({ product, storeId, formatPrice, isOpen, onC
 
         <div className="p-6 space-y-6 overflow-y-auto max-h-[calc(90vh-180px)]">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="p-4 bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-xl">
+            <div className="p-4 bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-xl min-w-0 overflow-hidden">
               <div className="text-xs text-slate-600 dark:text-slate-400 mb-1">Purchase Price</div>
-              <div className="text-lg font-bold text-slate-900 dark:text-white">
+              <div className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate" title={formatPrice(product.purchase_price || 0)}>
                 {formatPrice(product.purchase_price || 0)}
               </div>
             </div>
-            <div className="p-4 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-xl">
+            <div className="p-4 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-xl min-w-0 overflow-hidden">
               <div className="text-xs text-slate-600 dark:text-slate-400 mb-1">Selling Price</div>
-              <div className="text-lg font-bold text-slate-900 dark:text-white">
+              <div className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate" title={formatPrice(product.selling_price || 0)}>
                 {formatPrice(product.selling_price || 0)}
               </div>
             </div>
-            <div className="p-4 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-xl">
+            <div className="p-4 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-xl min-w-0 overflow-hidden">
               <div className="text-xs text-slate-600 dark:text-slate-400 mb-1">Quantity</div>
-              <div className="text-lg font-bold text-slate-900 dark:text-white">
+              <div className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
                 {product.is_unique ? allImeis.length : product.purchase_qty || 0}
               </div>
             </div>
-            <div className="p-4 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-xl">
+            <div className="p-4 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-xl min-w-0 overflow-hidden">
               <div className="text-xs text-slate-600 dark:text-slate-400 mb-1">Type</div>
-              <div className="text-lg font-bold text-slate-900 dark:text-white">
+              <div className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
                 {product.is_unique ? 'Unique' : 'Standard'}
               </div>
             </div>
@@ -188,11 +188,10 @@ export default function DetailModal({ product, storeId, formatPrice, isOpen, onC
                       return (
                         <div
                           key={imei}
-                          className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all ${
-                            isSold
-                              ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
-                              : 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800'
-                          }`}
+                          className={`flex items-center justify-between p-4 rounded-xl border-2 transition-all ${isSold
+                            ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+                            : 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800'
+                            }`}
                         >
                           <div>
                             <div className="font-mono text-sm font-semibold text-slate-900 dark:text-white">
@@ -203,11 +202,10 @@ export default function DetailModal({ product, storeId, formatPrice, isOpen, onC
                             )}
                           </div>
                           <span
-                            className={`px-4 py-2 rounded-full text-xs font-bold ${
-                              isSold
-                                ? 'bg-red-600 text-white'
-                                : 'bg-emerald-600 text-white'
-                            }`}
+                            className={`px-4 py-2 rounded-full text-xs font-bold ${isSold
+                              ? 'bg-red-600 text-white'
+                              : 'bg-emerald-600 text-white'
+                              }`}
                           >
                             {isSold ? 'SOLD' : 'IN STOCK'}
                           </span>
@@ -222,11 +220,10 @@ export default function DetailModal({ product, storeId, formatPrice, isOpen, onC
                         <button
                           key={page}
                           onClick={() => setCurrentPage(page)}
-                          className={`w-10 h-10 rounded-lg font-medium transition-all ${
-                            currentPage === page
-                              ? 'bg-indigo-600 text-white'
-                              : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700'
-                          }`}
+                          className={`w-10 h-10 rounded-lg font-medium transition-all ${currentPage === page
+                            ? 'bg-indigo-600 text-white'
+                            : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700'
+                            }`}
                         >
                           {page}
                         </button>

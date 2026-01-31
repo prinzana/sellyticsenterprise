@@ -106,8 +106,8 @@ export default function ReturnsTable({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 className={`border-b border-slate-200 dark:border-slate-700 ${selectedIds.includes(ret.id)
-                    ? 'bg-indigo-50 dark:bg-indigo-900/20'
-                    : ''
+                  ? 'bg-indigo-50 dark:bg-indigo-900/20'
+                  : ''
                   }`}
               >
                 <td className="px-4 py-3">
@@ -139,8 +139,10 @@ export default function ReturnsTable({
                 <td className="px-4 py-3 text-sm">{ret.qty}</td>
 
                 {/* ✅ FIXED AMOUNT */}
-                <td className="px-4 py-3 text-sm font-semibold">
-                  {formatPrice(ret.amount || 0)}
+                <td className="px-4 py-3 text-sm font-semibold max-w-[150px]">
+                  <span className="truncate block" title={formatPrice(ret.amount || 0)}>
+                    {formatPrice(ret.amount || 0)}
+                  </span>
                 </td>
 
                 <td className="px-4 py-3">

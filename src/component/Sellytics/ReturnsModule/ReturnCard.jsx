@@ -100,7 +100,7 @@ export default function ReturnCard({
           </h3>
 
           <div className="flex flex-wrap items-center gap-3 mt-3">
-            <div className="px-5 py-2.5 rounded-xl bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 text-xl font-bold">
+            <div className="px-4 py-2 rounded-xl bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 text-sm sm:text-base font-bold max-w-[200px]" title={formatPrice(returnItem.amount)}>
               {formatPrice(returnItem.amount)}
             </div>
             <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${statusColorClass}`}>

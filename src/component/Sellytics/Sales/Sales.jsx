@@ -6,8 +6,6 @@
  */
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import toast from 'react-hot-toast';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 import {
   Plus, RefreshCw, ShoppingCart, History,
   Wifi, WifiOff, Loader2, Play, Pause
@@ -117,6 +115,22 @@ export default function Tracker() {
     );
   }, [sales, isOwner, search]);
 
+  // Extract all sold IMEIs from current sales data for real-time validation
+  const soldImeis = useMemo(() => {
+    const set = new Set();
+    sales.forEach(sale => {
+      // status check just in case, though usually all in dynamic_sales are 'sold' or 'refunded'
+      if (sale.status === 'sold' && sale.device_id) {
+        sale.device_id.split(',').forEach(id => {
+          const tid = id.trim().toLowerCase();
+          if (tid) set.add(tid);
+        });
+      }
+    });
+    return set;
+  }, [sales]);
+
+
   // Handle scan success
   const handleScanSuccess = useCallback(async (barcode, targetLineId = null, targetRowKey = null) => {
     const normalizedBarcode = barcode.trim();
@@ -138,22 +152,32 @@ export default function Tracker() {
       return { success: false, error: `Product not found for: ${normalizedBarcode}` };
     }
 
-    // Check if already sold
-    const alreadySold = isOnline
-      ? await salesService.checkDeviceAlreadySold(normalizedBarcode, currentStoreId)
-      : await offlineCache.checkDeviceSold(normalizedBarcode, currentStoreId);
+    // Check if already sold (check local state first for real-time feel)
+    const normalizedLower = normalizedBarcode.toLowerCase();
+    const isAlreadySold = soldImeis.has(normalizedLower);
 
-    if (alreadySold) {
-      return { success: false, error: `Device "${normalizedBarcode}" has already been sold` };
+    if (isAlreadySold) {
+      const errorMsg = `Device "${normalizedBarcode}" has already been sold`;
+      toast.error(errorMsg, { icon: '🚫' });
+      return { success: false, error: errorMsg };
     }
 
     // Check inventory
     const inv = getInventoryForProduct(product.id);
     if (inv) {
-      if (inv.available_qty === 0) {
+      // For unique items, calculate from actual IMEIs minus sold ones
+      let stockQty = inv.available_qty;
+      if (product.is_unique && product.dynamic_product_imeis) {
+        const totalImeis = product.dynamic_product_imeis.split(',').map(i => i.trim().toLowerCase()).filter(Boolean);
+        // Only count IMEIs that haven't been sold yet
+        const availableImeis = totalImeis.filter(id => !soldImeis.has(id));
+        stockQty = availableImeis.length;
+      }
+
+      if (stockQty === 0) {
         toast.error('Out of stock — restock needed', { icon: '⚠️' });
-      } else if (inv.available_qty <= 6) {
-        toast(`Low stock: ${inv.available_qty} left`, { icon: '📦' });
+      } else if (stockQty <= 6) {
+        toast(`Low stock: ${stockQty} left`, { icon: '📦' });
       }
     }
 
@@ -172,7 +196,7 @@ export default function Tracker() {
     }
 
     return { success: true, productName: product.name };
-  }, [currentStoreId, isOnline, getProductByBarcode, getInventoryForProduct, checkoutState, showCheckoutForm]);
+  }, [isOnline, getProductByBarcode, getInventoryForProduct, checkoutState, showCheckoutForm, soldImeis]);
 
   // Scanner hook
   const scanner = useScanner(handleScanSuccess);
@@ -187,6 +211,10 @@ export default function Tracker() {
     if (!result.success) {
       // Clear the Product ID field on failure
       checkoutState.updateDeviceRow(lineId, rowKey, { deviceId: '' });
+
+      // If result.error exists and handleScanSuccess didn't already toast it (though it does for 'already sold')
+      // we can show it here too for consistency if needed. 
+      // handleScanSuccess already toasts for 'already sold'.
     }
 
     return result;
@@ -454,7 +482,7 @@ export default function Tracker() {
   return (
     <>
       <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col">
-        <ToastContainer position="top-right" autoClose={3000} />
+
 
         <div className="w-full flex-shrink-0 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
           {/* Header Top - Connection Status & Sync */}
@@ -617,6 +645,7 @@ export default function Tracker() {
             totalAmount={checkoutState.totalAmount}
             isOnline={isOnline}
             isSubmitting={isSubmitting}
+            soldImeis={soldImeis}
             onProductChange={(lineId, productId) => {
               const product = products.find(p => p.id === productId);
               if (product) {

@@ -57,16 +57,15 @@ export default function ReturnStatsHeader({ stats }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: idx * 0.1 }}
             onClick={stat.clickable ? stat.onClick : undefined}
-            className={`bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-200 dark:border-slate-700 ${
-              stat.clickable ? 'cursor-pointer hover:shadow-lg transition-shadow' : ''
-            }`}
+            className={`bg-white dark:bg-slate-800 rounded-xl p-5 border border-slate-200 dark:border-slate-700 ${stat.clickable ? 'cursor-pointer hover:shadow-lg transition-shadow' : ''
+              }`}
           >
             <div className="flex items-center justify-between">
-              <div>
+              <div className="min-w-0 flex-1 mr-3">
                 <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">
                   {stat.title}
                 </p>
-                <p className="text-2xl font-bold text-slate-900 dark:text-white">
+                <p className="text-sm sm:text-base lg:text-lg font-bold text-slate-900 dark:text-white truncate" title={String(stat.value)}>
                   {stat.value}
                 </p>
               </div>

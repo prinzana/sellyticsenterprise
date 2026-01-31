@@ -177,7 +177,7 @@ export default function EditProductModal({
             onOpenScanner={() =>
               scanner.openScanner(form.is_unique ? 'unique' : 'standard', 'camera')
             }
-            onRemoveProduct={() => {}}
+            onRemoveProduct={() => { }}
           />
 
           {/* Footer */}
@@ -200,26 +200,29 @@ export default function EditProductModal({
         </motion.form>
       </motion.div>
 
-      {/* Scanner */}
-      <ScannerModal
-        show={scanner.showScanner}
-        scannerMode={scanner.scannerMode}
-        setScannerMode={scanner.setScannerMode}
-        continuousScan={scanner.continuousScan}
-        setContinuousScan={scanner.setContinuousScan}
-        isLoading={scanner.isLoading}
-        error={scanner.error}
-        videoRef={scanner.videoRef}
-        manualInput={scanner.manualInput}
-        setManualInput={scanner.setManualInput}
-        onManualSubmit={scanner.handleManualSubmit}
-        scannedItems={scanner.scannedItems}
-        removeScannedItem={scanner.removeScannedItem}
-        updateScannedItemSize={scanner.updateScannedItemSize}
-        completeScanning={scanner.completeScanning}
-        onClose={scanner.closeScanner}
-        scanningFor={scanner.scanningFor}
-      />
+      {/* Scanner - Only render when showScanner is true */}
+      {scanner.showScanner && (
+        <ScannerModal
+          show={scanner.showScanner}
+          scannerMode={scanner.scannerMode}
+          setScannerMode={scanner.setScannerMode}
+          continuousScan={scanner.continuousScan}
+          setContinuousScan={scanner.setContinuousScan}
+          isLoading={scanner.isLoading}
+          error={scanner.error}
+          videoRef={scanner.videoRef}
+          manualInput={scanner.manualInput}
+          setManualInput={scanner.setManualInput}
+          onManualSubmit={scanner.handleManualSubmit}
+          scannedItems={scanner.scannedItems}
+          removeScannedItem={scanner.removeScannedItem}
+          updateScannedItemSize={scanner.updateScannedItemSize}
+          completeScanning={scanner.completeScanning}
+          onClose={scanner.closeScanner}
+          scanningFor={scanner.scanningFor}
+          processScannedCode={scanner.processScannedCode}
+        />
+      )}
     </>
   );
 }

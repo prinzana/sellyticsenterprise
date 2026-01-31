@@ -114,10 +114,10 @@ export default function ProductCatalogue() {
   const handleCreateProduct = async (productData) => {
     try {
       await createProduct(productData);
-      setShowAddForm(false);
-      toast.success(isOnline ? 'Product created successfully!' : 'Product saved offline - will sync when online');
+      // Note: Don't close form here - ProductForm handles success
     } catch (err) {
-      toast.error(err.message || 'Failed to create product');
+      // Re-throw the error so ProductForm can handle it and keep form open
+      throw err;
     }
   };
 

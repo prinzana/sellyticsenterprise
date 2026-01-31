@@ -58,7 +58,7 @@ export default function DiscrepanciesCard({ totalDiscrepancy, discrepanciesByPay
                 <p className="text-[9px] sm:text-xs text-slate-500 leading-tight truncate">
                   {card.title}
                 </p>
-                <p className={`text-xs sm:text-sm font-bold ${colorMap[color].text} truncate`}>
+                <p className={`text-xs sm:text-sm font-bold ${colorMap[color].text} truncate`} title={formatPrice(Math.abs(card.discrepancy))}>
                   {formatPrice(Math.abs(card.discrepancy))}
                 </p>
               </div>

@@ -45,7 +45,7 @@ export default function InventoryStatsCards({ items }) {
                 </div>
               </div>
               <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-1">{card.title}</h3>
-              <p className="text-2xl font-bold text-slate-900 dark:text-white">{card.value}</p>
+              <p className="text-sm sm:text-base lg:text-lg font-bold text-slate-900 dark:text-white truncate" title={String(card.value)}>{card.value}</p>
             </div>
           </motion.div>
         );

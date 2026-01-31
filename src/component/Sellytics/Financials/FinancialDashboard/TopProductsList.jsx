@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronDown, ChevronUp, Award, Search} from 'lucide-react';
+import { ChevronDown, ChevronUp, Award, Search } from 'lucide-react';
 import { useCurrency } from '../../../context/currencyContext';
 
 export default function TopProductsList({ topProducts, onDelete }) {
@@ -116,12 +116,12 @@ function TopProductCard({ product, rank, onDelete }) {
           </div>
         </div>
 
-       
+
       </div>
 
       {/* Bottom row: Sales Amount */}
-      <div className="mt-4 flex items-center gap-2 text-lg font-semibold text-emerald-600 dark:text-emerald-400">
-        <span>{formatPrice(product.amount)}</span>
+      <div className="mt-4 flex items-center gap-2 text-sm sm:text-base font-semibold text-emerald-600 dark:text-emerald-400 min-w-0">
+        <span className="truncate" title={formatPrice(product.amount)}>{formatPrice(product.amount)}</span>
       </div>
     </motion.div>
   );

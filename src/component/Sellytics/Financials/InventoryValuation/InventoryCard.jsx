@@ -21,11 +21,10 @@ export default function InventoryCard({ item, isSelected, onSelect, onDelete, on
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className={`w-full bg-white dark:bg-slate-800 rounded-xl border transition-all duration-300 relative ${
-        isSelected
+      className={`w-full bg-white dark:bg-slate-800 rounded-xl border transition-all duration-300 relative ${isSelected
           ? 'border-indigo-500 shadow-lg ring-1 ring-indigo-500/10'
           : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
-      }`}
+        }`}
     >
       <div className="p-3 sm:p-4">
         {/* Top Row */}
@@ -111,7 +110,7 @@ export default function InventoryCard({ item, isSelected, onSelect, onDelete, on
             <p className="text-[10px] sm:text-xs font-medium text-slate-500 dark:text-slate-400">
               Unit Cost
             </p>
-            <p className="text-sm sm:text-base font-bold text-slate-800 dark:text-white truncate">
+            <p className="text-sm sm:text-base font-bold text-slate-800 dark:text-white truncate" title={hasPrice ? formatPrice(item.purchase_price) : '—'}>
               {hasPrice ? formatPrice(item.purchase_price) : '—'}
             </p>
           </div>
@@ -119,7 +118,7 @@ export default function InventoryCard({ item, isSelected, onSelect, onDelete, on
             <p className="text-[10px] sm:text-xs font-medium text-indigo-500 dark:text-indigo-400">
               Total Value
             </p>
-            <p className="text-sm sm:text-base font-bold text-indigo-600 dark:text-indigo-300 truncate">
+            <p className="text-sm sm:text-base font-bold text-indigo-600 dark:text-indigo-300 truncate" title={hasPrice ? formatPrice(totalValue) : '—'}>
               {hasPrice ? formatPrice(totalValue) : '—'}
             </p>
           </div>

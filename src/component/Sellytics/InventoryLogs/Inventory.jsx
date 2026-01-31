@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
 import toast from 'react-hot-toast';
 import { AnimatePresence } from 'framer-motion';
@@ -7,6 +7,7 @@ import {
   Package, Search, RefreshCw, Wifi, WifiOff, Bell,
   Filter, History, BarChart3, Scan, Loader2, ChevronLeft, ChevronRight
 } from 'lucide-react';
+import { supabase } from '../../../supabaseClient';
 
 // Hooks
 import useInventoryData from './hooks/useInventoryData';
@@ -100,6 +101,40 @@ export default function Inventory() {
   const [imeiItem, setImeiItem] = useState(null);
   const [showNotifications, setShowNotifications] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [soldImeis, setSoldImeis] = useState(new Set());
+
+  // Fetch sold IMEIs for accurate unique item stock counts
+  useEffect(() => {
+    if (!storeId) return;
+
+    const fetchSoldImeis = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('dynamic_sales')
+          .select('device_id')
+          .eq('store_id', storeId);
+
+        if (error) throw error;
+
+        const soldSet = new Set();
+        data?.forEach(sale => {
+          if (sale.device_id) {
+            sale.device_id
+              .toString()
+              .split(',')
+              .map(s => s.trim())
+              .filter(Boolean)
+              .forEach(id => soldSet.add(id));
+          }
+        });
+        setSoldImeis(soldSet);
+      } catch (err) {
+        console.error('Failed to fetch sold IMEIs:', err);
+      }
+    };
+
+    fetchSoldImeis();
+  }, [storeId, inventory]); // Re-fetch when inventory changes
 
   // Currency formatter
   const formatPrice = useCallback((value) => {
@@ -470,6 +505,7 @@ export default function Inventory() {
                       item={item}
                       onClick={() => setSelectedItem(item)}
                       formatPrice={formatPrice}
+                      soldImeis={soldImeis}
                     />
                   ))
                 )}

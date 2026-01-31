@@ -1,8 +1,8 @@
 // src/components/Debts/EditDebtModal/DebtEntry.jsx
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import DeviceIdSection from './DeviceIdSection';
 import { FaTrash } from 'react-icons/fa';
-import { Camera, AlertCircle } from 'lucide-react';
+import { Camera, AlertCircle, Search, ChevronDown } from 'lucide-react';
 
 export default function DebtEntry({
   entry,
@@ -132,20 +132,13 @@ export default function DebtEntry({
           <label className="block text-sm font-medium mb-1">
             Customer <span className="text-red-500">*</span>
           </label>
-          <select
-            value={entry.customer_id || ''}
-            onChange={(e) => handleChange('customer_id', e.target.value)}
-            onBlur={(e) => handleBlur('customer_id', e.target.value)}
-            className={`w-full p-3 border rounded-lg bg-white dark:bg-gray-900 ${errors.customer_id
-              ? 'border-red-500 focus:ring-2 focus:ring-red-500'
-              : 'border-gray-300 dark:border-gray-700'
-              }`}
-          >
-            <option value="">Select Customer</option>
-            {customers.map(c => (
-              <option key={c.id} value={c.id}>{c.fullname}</option>
-            ))}
-          </select>
+          <SearchableCustomerDropdown
+            customers={customers}
+            selectedCustomerId={entry.customer_id}
+            onSelect={(value) => handleChange('customer_id', value)}
+            onBlur={(value) => handleBlur('customer_id', value)}
+            hasError={!!errors.customer_id}
+          />
           {errors.customer_id && (
             <div className="flex items-center gap-1 mt-1 text-red-500 text-xs">
               <AlertCircle className="w-3 h-3" />
@@ -162,22 +155,13 @@ export default function DebtEntry({
 
           <div className="flex flex-col sm:flex-row gap-2 w-full">
             <div className="flex-1 min-w-0">
-              <select
-                value={entry.dynamic_product_id || ''}
-                onChange={(e) => handleChange('dynamic_product_id', e.target.value)}
-                onBlur={(e) => handleBlur('dynamic_product_id', e.target.value)}
-                className={`w-full p-3 border rounded-lg bg-white dark:bg-gray-900 ${errors.dynamic_product_id
-                  ? 'border-red-500 focus:ring-2 focus:ring-red-500'
-                  : 'border-gray-300 dark:border-gray-700'
-                  }`}
-              >
-                <option value="">Select Product</option>
-                {products.map(p => (
-                  <option key={p.id} value={p.id}>
-                    {p.name} ({p.selling_price || 0})
-                  </option>
-                ))}
-              </select>
+              <SearchableProductDropdown
+                products={products}
+                selectedProductId={entry.dynamic_product_id}
+                onSelect={(value) => handleChange('dynamic_product_id', value)}
+                onBlur={(value) => handleBlur('dynamic_product_id', value)}
+                hasError={!!errors.dynamic_product_id}
+              />
               {errors.dynamic_product_id && (
                 <div className="flex items-center gap-1 mt-1 text-red-500 text-xs">
                   <AlertCircle className="w-3 h-3" />
@@ -192,8 +176,8 @@ export default function DebtEntry({
               className="
                 w-full sm:w-auto
                 px-4 py-3
-                bg-indigo-600 hover:bg-indigo-700
-                text-white rounded-lg
+               hover:bg-indigo-100
+                text-indigo-600 rounded-lg
                 font-medium
                 flex items-center justify-center
                 shrink-0
@@ -328,6 +312,213 @@ export default function DebtEntry({
         <p className="mt-4 p-3 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 font-semibold rounded-lg text-center text-sm">
           ✅ Non-Unique Product – Total Owed is Price × Quantity
         </p>
+      )}
+    </div>
+  );
+}
+
+// Searchable Product Dropdown Component
+function SearchableProductDropdown({ products, selectedProductId, onSelect, onBlur, hasError }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const dropdownRef = useRef(null);
+  const inputRef = useRef(null);
+
+  // Get selected product name
+  const selectedProduct = products.find(p => String(p.id) === String(selectedProductId));
+
+  // Filter products based on search
+  const filteredProducts = products.filter(p =>
+    p.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setIsOpen(false);
+        setSearch('');
+        if (onBlur) onBlur(selectedProductId);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [selectedProductId, onBlur]);
+
+  // Focus search input when dropdown opens
+  useEffect(() => {
+    if (isOpen && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isOpen]);
+
+  const handleSelect = (productId) => {
+    onSelect(productId);
+    setIsOpen(false);
+    setSearch('');
+  };
+
+  return (
+    <div ref={dropdownRef} className="relative">
+      {/* Trigger Button */}
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={`w-full p-3 border rounded-lg bg-white dark:bg-gray-900 text-sm text-left flex items-center justify-between gap-2 ${hasError ? 'border-red-500 focus:ring-2 focus:ring-red-500' : 'border-gray-300 dark:border-gray-700'
+          }`}
+      >
+        <span className={selectedProduct ? 'text-gray-900 dark:text-white' : 'text-gray-400'}>
+          {selectedProduct ? `${selectedProduct.name} (${selectedProduct.selling_price || 0})` : 'Select Product'}
+        </span>
+        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+
+      {/* Dropdown */}
+      {isOpen && (
+        <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg shadow-xl overflow-hidden">
+          {/* Search Input */}
+          <div className="p-2 border-b border-gray-200 dark:border-gray-700">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                ref={inputRef}
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search products..."
+                className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+          </div>
+
+          {/* Options List */}
+          <div className="max-h-48 overflow-y-auto">
+            {filteredProducts.length === 0 ? (
+              <div className="px-3 py-4 text-sm text-gray-500 text-center">
+                No products found
+              </div>
+            ) : (
+              filteredProducts.map(p => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => handleSelect(p.id)}
+                  className={`w-full px-3 py-2.5 text-sm text-left hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors flex items-center justify-between ${String(p.id) === String(selectedProductId) ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600' : 'text-gray-700 dark:text-gray-300'
+                    }`}
+                >
+                  <span className="truncate">{p.name}</span>
+                  <span className="text-xs text-gray-500 flex-shrink-0 ml-2">{p.selling_price || 0}</span>
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Searchable Customer Dropdown Component
+function SearchableCustomerDropdown({ customers, selectedCustomerId, onSelect, onBlur, hasError }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const dropdownRef = useRef(null);
+  const inputRef = useRef(null);
+
+  // Get selected customer name
+  const selectedCustomer = customers.find(c => String(c.id) === String(selectedCustomerId));
+
+  // Filter customers based on search (name or email)
+  const filteredCustomers = customers.filter(c => {
+    const lowerSearch = search.toLowerCase();
+    const nameMatch = c.fullname?.toLowerCase().includes(lowerSearch);
+    const emailMatch = c.email?.toLowerCase().includes(lowerSearch);
+    return nameMatch || emailMatch;
+  });
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setIsOpen(false);
+        setSearch('');
+        if (onBlur) onBlur(selectedCustomerId);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [selectedCustomerId, onBlur]);
+
+  // Focus search input when dropdown opens
+  useEffect(() => {
+    if (isOpen && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isOpen]);
+
+  const handleSelect = (customerId) => {
+    onSelect(customerId);
+    setIsOpen(false);
+    setSearch('');
+  };
+
+  return (
+    <div ref={dropdownRef} className="relative">
+      {/* Trigger Button */}
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={`w-full p-3 border rounded-lg bg-white dark:bg-gray-900 text-sm text-left flex items-center justify-between gap-2 ${hasError ? 'border-red-500 focus:ring-2 focus:ring-red-500' : 'border-gray-300 dark:border-gray-700'
+          }`}
+      >
+        <span className={selectedCustomer ? 'text-gray-900 dark:text-white' : 'text-gray-400'}>
+          {selectedCustomer ? selectedCustomer.fullname : 'Select Customer'}
+        </span>
+        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+
+      {/* Dropdown */}
+      {isOpen && (
+        <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg shadow-xl overflow-hidden">
+          {/* Search Input */}
+          <div className="p-2 border-b border-gray-200 dark:border-gray-700">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                ref={inputRef}
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search by name or email"
+                className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              />
+            </div>
+          </div>
+
+          {/* Options List */}
+          <div className="max-h-48 overflow-y-auto">
+            {filteredCustomers.length === 0 ? (
+              <div className="px-3 py-4 text-sm text-gray-500 text-center">
+                No customers found
+              </div>
+            ) : (
+              filteredCustomers.map(c => (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => handleSelect(c.id)}
+                  className={`w-full px-3 py-2.5 text-sm text-left hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors flex flex-col ${String(c.id) === String(selectedCustomerId) ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600' : 'text-gray-700 dark:text-gray-300'
+                    }`}
+                >
+                  <span className="truncate font-medium">{c.fullname}</span>
+                  {c.email && (
+                    <span className="text-xs text-gray-500">{c.email}</span>
+                  )}
+                </button>
+              ))
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

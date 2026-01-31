@@ -74,7 +74,7 @@ export default function SalesStatsCards({ totalSalesAmount, salesByPaymentMethod
               <p className="text-[9px] sm:text-xs text-slate-500 leading-tight">
                 {card.title}
               </p>
-              <p className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate">
+              <p className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate" title={String(card.value)}>
                 {card.value}
               </p>
             </div>

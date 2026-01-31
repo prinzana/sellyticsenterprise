@@ -10,9 +10,9 @@ const VIEW_MODES = {
 
 const VIEW_PREFERENCE_KEY = 'saleGroups_view_mode';
 
-export default function SaleGroupsList({ 
-  saleGroups, 
-  selectedGroup, 
+export default function SaleGroupsList({
+  saleGroups,
+  selectedGroup,
   onSelectGroup,
   canDelete,
   selectedIds,
@@ -125,8 +125,8 @@ export default function SaleGroupsList({
                       onClick={() => onToggleSelectAll(paginatedGroups)}
                       className="hover:bg-slate-100 dark:hover:bg-slate-800 p-1 rounded transition-colors"
                     >
-                      {allSelected ? 
-                        <CheckSquare className="w-5 h-5 text-indigo-600" /> : 
+                      {allSelected ?
+                        <CheckSquare className="w-5 h-5 text-indigo-600" /> :
                         <Square className="w-5 h-5 text-slate-400" />
                       }
                     </button>
@@ -151,13 +151,12 @@ export default function SaleGroupsList({
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: idx * 0.02 }}
-                      className={`cursor-pointer transition-all ${
-                        selectedGroup?.id === group.id
+                      className={`cursor-pointer transition-all ${selectedGroup?.id === group.id
                           ? 'bg-indigo-50 dark:bg-indigo-900/20'
                           : isSelected
-                          ? 'bg-blue-50 dark:bg-blue-900/10'
-                          : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'
-                      }`}
+                            ? 'bg-blue-50 dark:bg-blue-900/10'
+                            : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                        }`}
                       onClick={(e) => {
                         if (!e.target.closest('button')) {
                           onSelectGroup(group);
@@ -173,8 +172,8 @@ export default function SaleGroupsList({
                             }}
                             className="hover:bg-slate-100 dark:hover:bg-slate-700 p-1 rounded transition-colors"
                           >
-                            {isSelected ? 
-                              <CheckSquare className="w-5 h-5 text-indigo-600" /> : 
+                            {isSelected ?
+                              <CheckSquare className="w-5 h-5 text-indigo-600" /> :
                               <Square className="w-5 h-5 text-slate-400" />
                             }
                           </button>
@@ -186,8 +185,10 @@ export default function SaleGroupsList({
                           <span className="font-semibold text-slate-900 dark:text-white truncate">#{group.id}</span>
                         </div>
                       </td>
-                      <td className="px-3 sm:px-6 py-4 font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap">
-                        {formatPrice(group.total_amount)}
+                      <td className="px-3 sm:px-6 py-4 font-bold text-emerald-600 dark:text-emerald-400 max-w-[150px]">
+                        <span className="truncate block text-sm" title={formatPrice(group.total_amount)}>
+                          {formatPrice(group.total_amount)}
+                        </span>
                       </td>
                       <td className="hidden lg:table-cell px-3 sm:px-6 py-4">
                         <span className="px-3 py-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-lg text-xs font-semibold uppercase tracking-wide whitespace-nowrap">
@@ -239,11 +240,11 @@ export default function SaleGroupsList({
                   onClick={() => onSelectGroup(group)}
                   className={`
                     relative p-4 rounded-xl border-2 transition-all cursor-pointer
-                    ${selectedGroup?.id === group.id 
-                      ? 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-500' 
+                    ${selectedGroup?.id === group.id
+                      ? 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-500'
                       : isSelected
-                      ? 'bg-blue-50 dark:bg-blue-900/10 border-blue-400'
-                      : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-indigo-300'
+                        ? 'bg-blue-50 dark:bg-blue-900/10 border-blue-400'
+                        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-indigo-300'
                     }
                   `}
                 >
@@ -255,8 +256,8 @@ export default function SaleGroupsList({
                       }}
                       className="absolute top-3 right-3 hover:bg-slate-100 dark:hover:bg-slate-700 p-1.5 rounded-lg transition-colors"
                     >
-                      {isSelected ? 
-                        <CheckSquare className="w-5 h-5 text-indigo-600" /> : 
+                      {isSelected ?
+                        <CheckSquare className="w-5 h-5 text-indigo-600" /> :
                         <Square className="w-5 h-5 text-slate-400" />
                       }
                     </button>
@@ -267,10 +268,10 @@ export default function SaleGroupsList({
                       <Package className="w-4 h-4 text-indigo-600 flex-shrink-0" />
                       <span className="font-semibold text-slate-900 dark:text-white">Sale #{group.id}</span>
                     </div>
-                    
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-xs text-slate-600 dark:text-slate-400 font-medium">Amount:</span>
-                      <span className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
+
+                    <div className="flex items-baseline gap-2 min-w-0">
+                      <span className="text-xs text-slate-600 dark:text-slate-400 font-medium flex-shrink-0">Amount:</span>
+                      <span className="text-sm sm:text-base font-bold text-emerald-600 dark:text-emerald-400 truncate" title={formatPrice(group.total_amount)}>
                         {formatPrice(group.total_amount)}
                       </span>
                     </div>
@@ -317,11 +318,11 @@ export default function SaleGroupsList({
                     relative p-4 sm:p-5 w-full
                     bg-white dark:bg-slate-800
                     rounded-2xl border-2 transition-all cursor-pointer shadow-sm hover:shadow-lg
-                    ${selectedGroup?.id === group.id 
-                      ? 'border-indigo-500 ring-4 ring-indigo-500/20 dark:ring-indigo-500/30' 
+                    ${selectedGroup?.id === group.id
+                      ? 'border-indigo-500 ring-4 ring-indigo-500/20 dark:ring-indigo-500/30'
                       : isSelected
-                      ? 'border-blue-400 ring-2 ring-blue-400/20'
-                      : 'border-slate-200 dark:border-slate-700 hover:border-indigo-300'
+                        ? 'border-blue-400 ring-2 ring-blue-400/20'
+                        : 'border-slate-200 dark:border-slate-700 hover:border-indigo-300'
                     }
                   `}
                 >
@@ -333,8 +334,8 @@ export default function SaleGroupsList({
                       }}
                       className="absolute top-3 sm:top-4 right-3 sm:right-4 hover:bg-slate-100 dark:hover:bg-slate-700 p-2 rounded-lg transition-colors z-10"
                     >
-                      {isSelected ? 
-                        <CheckSquare className="w-5 h-5 text-indigo-600" /> : 
+                      {isSelected ?
+                        <CheckSquare className="w-5 h-5 text-indigo-600" /> :
                         <Square className="w-5 h-5 text-slate-400" />
                       }
                     </button>
@@ -353,7 +354,7 @@ export default function SaleGroupsList({
                         <h3 className="font-bold text-base sm:text-lg text-slate-900 dark:text-white truncate">
                           Sale #{group.id}
                         </h3>
-                        <p className="text-xl sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 sm:mt-1 truncate">
+                        <p className="text-base sm:text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 sm:mt-1 truncate" title={formatPrice(group.total_amount)}>
                           {formatPrice(group.total_amount)}
                         </p>
                       </div>

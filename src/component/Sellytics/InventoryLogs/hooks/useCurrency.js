@@ -40,12 +40,6 @@ export default function useCurrency() {
 
   const formatPrice = useCallback((value) => {
     const num = Number(value) || 0;
-    if (Math.abs(num) >= 1_000_000) {
-      const suffixes = ['', 'K', 'M', 'B', 'T'];
-      const tier = Math.floor(Math.log10(Math.abs(num)) / 3);
-      const scaled = num / Math.pow(1000, tier);
-      return `${preferredCurrency.symbol}${scaled.toFixed(1)}${suffixes[tier] || ''}`;
-    }
     return `${preferredCurrency.symbol}${num.toLocaleString('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2

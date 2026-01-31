@@ -8,24 +8,24 @@ const ReceiptPreview = forwardRef(({ store, receipt, saleGroup, productGroups, s
   const totalAmount = receipt?.sales_amount || saleGroup?.total_amount || 0;
   const totalQuantity = productGroups.reduce((sum, g) => sum + g.quantity, 0);
 
-  const hasCustomerInfo = 
-    receipt?.customer_name?.trim() || 
-    receipt?.phone_number?.trim() || 
-    receipt?.customer_address?.trim() || 
+  const hasCustomerInfo =
+    receipt?.customer_name?.trim() ||
+    receipt?.phone_number?.trim() ||
+    receipt?.customer_address?.trim() ||
     receipt?.warranty?.trim();
 
   return (
-    <div 
-      ref={ref} 
-      className="bg-white w-full max-w-[80mm] mx-auto text-xs" 
+    <div
+      ref={ref}
+      className="bg-white w-full max-w-[80mm] mx-auto text-xs"
       style={{ fontFamily: styles?.fontFamily || 'monospace' }}
     >
       {/* Header */}
-      <div 
+      <div
         className="text-center p-4 mb-3 rounded-t-2xl"
-        style={{ 
-          backgroundColor: styles?.headerBgColor || '#1E3A8A', 
-          color: styles?.headerTextColor || '#FFFFFF' 
+        style={{
+          backgroundColor: styles?.headerBgColor || '#1E3A8A',
+          color: styles?.headerTextColor || '#FFFFFF'
         }}
       >
         {styles?.logoUrl && (
@@ -69,9 +69,9 @@ const ReceiptPreview = forwardRef(({ store, receipt, saleGroup, productGroups, s
                     IMEI: {group.deviceIds.join(', ')}
                   </div>
                 )}
-                <div className="flex justify-between items-center text-[10px]">
+                <div className="flex justify-between items-center text-[9px]">
                   <span>{group.quantity} x {formatPrice(group.unitPrice)}</span>
-                  <span className="font-bold">{formatPrice(group.totalAmount)}</span>
+                  <span className="font-bold truncate ml-1" title={formatPrice(group.totalAmount)}>{formatPrice(group.totalAmount)}</span>
                 </div>
               </div>
             ))
@@ -89,9 +89,9 @@ const ReceiptPreview = forwardRef(({ store, receipt, saleGroup, productGroups, s
           <span className="font-semibold">Total Items:</span>
           <span className="font-bold">{totalQuantity}</span>
         </div>
-        <div className="flex justify-between text-base">
+        <div className="flex justify-between text-sm">
           <span className="font-bold">TOTAL:</span>
-          <span className="font-bold">{formatPrice(totalAmount)}</span>
+          <span className="font-bold truncate ml-1" title={formatPrice(totalAmount)}>{formatPrice(totalAmount)}</span>
         </div>
       </div>
 

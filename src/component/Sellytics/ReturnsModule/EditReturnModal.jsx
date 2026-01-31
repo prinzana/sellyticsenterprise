@@ -84,7 +84,7 @@ export default function EditReturnModal({
                     <DollarSign className="w-5 h-5" />
                     <span className="text-sm font-medium">Amount</span>
                   </div>
-                  <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-300">
+                  <p className="text-sm sm:text-base font-bold text-emerald-700 dark:text-emerald-300 truncate" title={formatPrice(returnItem.amount || 0)}>
                     {formatPrice(returnItem.amount || 0)}
                   </p>
                 </div>

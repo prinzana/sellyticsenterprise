@@ -3,10 +3,10 @@
  * Main sales form with product lines and device tracking
  * @version 2.0.0
  */
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   X, Plus, Trash2, Scan, Package, Hash,
-  CreditCard, User, Mail, Loader2
+  CreditCard, User, Mail, Loader2, Search, ChevronDown
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -37,6 +37,7 @@ export default function CheckoutForm({
   onSubmit,
   onCancel,
   formatPrice,
+  soldImeis = new Set(),
   isEditing = false // New Prop
 }) {
   const paymentMethods = ['Cash', 'Card', 'Bank Transfer', 'Wallet'];
@@ -44,7 +45,18 @@ export default function CheckoutForm({
   const getInventoryQty = (productId) => {
     if (!productId) return null;
     const inv = inventory.find(i => i.dynamic_product_id === productId);
-    return inv?.available_qty ?? null;
+    if (!inv) return null;
+
+    // For unique items, calculate from actual IMEIs minus the real-time sold set
+    const product = inv.dynamic_product || products.find(p => p.id === productId);
+    if (product?.is_unique && product?.dynamic_product_imeis) {
+      const totalImeis = product.dynamic_product_imeis.split(',').map(i => i.trim().toLowerCase()).filter(Boolean);
+      // Count how many are NOT sold
+      const availableCount = totalImeis.filter(id => !soldImeis.has(id)).length;
+      return availableCount;
+    }
+
+    return inv.available_qty ?? null;
   };
 
   const getInventoryWarning = (productId) => {
@@ -54,6 +66,23 @@ export default function CheckoutForm({
     if (qty <= 6) return { type: 'warning', message: `Low stock: ${qty} left` };
     return null;
   };
+
+  // Check if any unique items are missing VALIDATED device IDs
+  // IDs must be validated (isScanned: true) meaning they exist in the product's IMEIs
+  const hasUniqueWithoutValidIds = lines.some(line => {
+    if (!line.isUnique) return false;
+    const validatedIds = (line.deviceRows || []).filter(r => r.deviceId?.trim() && r.isScanned);
+    return validatedIds.length === 0;
+  });
+
+  // Check if any IDs are pending validation (typed but not yet validated)
+  const hasPendingValidation = lines.some(line => {
+    if (!line.isUnique) return false;
+    return (line.deviceRows || []).some(r => r.deviceId?.trim() && !r.isScanned);
+  });
+
+  // Button is disabled if unique items have no valid IDs OR have pending unvalidated IDs
+  const hasUniqueValidationIssue = hasUniqueWithoutValidIds || hasPendingValidation;
 
   return (
     <motion.div
@@ -111,18 +140,13 @@ export default function CheckoutForm({
                     <label className="text-xs font-medium text-slate-500">
                       Product #{lineIndex + 1}
                     </label>
-                    <select
-                      value={line.dynamic_product_id || ''}
-                      onChange={(e) => onProductChange(line.id, Number(e.target.value))}
-                      className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-sm"
-                    >
-                      <option value="">Select product...</option>
-                      {products.map(p => (
-                        <option key={p.id} value={p.id}>
-                          {p.name} - {formatPrice(p.selling_price)}
-                        </option>
-                      ))}
-                    </select>
+                    <SearchableProductSelect
+                      products={products}
+                      selectedProductId={line.dynamic_product_id}
+                      onSelect={(productId) => onProductChange(line.id, productId)}
+                      formatPrice={formatPrice}
+                      lineIndex={lineIndex}
+                    />
 
                     {/* Inventory Warning */}
                     {line.dynamic_product_id && getInventoryWarning(line.dynamic_product_id) && (
@@ -282,21 +306,11 @@ export default function CheckoutForm({
               <User className="w-3 h-3" />
               Customer (Optional)
             </label>
-            <select
-              value={selectedCustomerId || ''}
-              onChange={(e) => {
-                const customerId = e.target.value ? Number(e.target.value) : null;
-                onCustomerChange(customerId);
-              }}
-              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-sm"
-            >
-              <option value="">Walk-in Customer</option>
-              {customers.map(c => (
-                <option key={c.id} value={c.id}>
-                  {c.fullname} {c.email ? `(${c.email})` : ''}
-                </option>
-              ))}
-            </select>
+            <SearchableCustomerSelect
+              customers={customers}
+              selectedCustomerId={selectedCustomerId}
+              onSelect={onCustomerChange}
+            />
           </div>
 
           {/* Email Receipt */}
@@ -327,6 +341,12 @@ export default function CheckoutForm({
           </div>
 
           {/* Actions */}
+          {hasUniqueValidationIssue && (
+            <div className="flex items-center gap-2 p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg text-amber-700 dark:text-amber-400 text-xs">
+              <Hash className="w-4 h-4" />
+              <span>{hasPendingValidation ? 'Validating ID... click outside to confirm' : 'Unique items require a valid Product ID'}</span>
+            </div>
+          )}
           <div className="flex gap-3">
             <button
               onClick={onCancel}
@@ -336,8 +356,8 @@ export default function CheckoutForm({
             </button>
             <button
               onClick={onSubmit}
-              disabled={isSubmitting || totalAmount === 0}
-              className="flex-1 px-4 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 text-white rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
+              disabled={isSubmitting || totalAmount === 0 || hasUniqueValidationIssue}
+              className="flex-1 px-4 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
             >
               {isSubmitting ? (
                 <>
@@ -354,5 +374,233 @@ export default function CheckoutForm({
         </div>
       </motion.div>
     </motion.div>
+  );
+}
+
+// Searchable Product Dropdown Component
+function SearchableProductSelect({ products, selectedProductId, onSelect, formatPrice, lineIndex }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const dropdownRef = useRef(null);
+  const inputRef = useRef(null);
+
+  // Get selected product name
+  const selectedProduct = products.find(p => p.id === selectedProductId);
+
+  // Filter products based on search
+  const filteredProducts = products.filter(p => {
+    const lowerSearch = search.toLowerCase();
+    const nameMatch = p.name?.toLowerCase().includes(lowerSearch);
+    const imeiMatch = p.dynamic_product_imeis?.toLowerCase().includes(lowerSearch);
+    const deviceIdMatch = p.device_id?.toLowerCase().includes(lowerSearch);
+    return nameMatch || imeiMatch || deviceIdMatch;
+  });
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setIsOpen(false);
+        setSearch('');
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Focus search input when dropdown opens
+  useEffect(() => {
+    if (isOpen && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isOpen]);
+
+  const handleSelect = (productId) => {
+    onSelect(productId);
+    setIsOpen(false);
+    setSearch('');
+  };
+
+  return (
+    <div ref={dropdownRef} className="relative">
+      {/* Trigger Button */}
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-sm text-left flex items-center justify-between gap-2"
+      >
+        <span className={selectedProduct ? 'text-slate-900 dark:text-white' : 'text-slate-400'}>
+          {selectedProduct ? `${selectedProduct.name} - ${formatPrice(selectedProduct.selling_price)}` : 'Select product...'}
+        </span>
+        <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+
+      {/* Dropdown */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="absolute z-50 top-full left-0 right-0 mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl overflow-hidden"
+          >
+            {/* Search Input */}
+            <div className="p-2 border-b border-slate-200 dark:border-slate-700">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search by name or product ID"
+                  className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+            </div>
+
+            {/* Options List */}
+            <div className="max-h-48 overflow-y-auto">
+              {filteredProducts.length === 0 ? (
+                <div className="px-3 py-4 text-sm text-slate-500 text-center">
+                  No products found
+                </div>
+              ) : (
+                filteredProducts.map(p => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    onClick={() => handleSelect(p.id)}
+                    className={`w-full px-3 py-2 text-sm text-left hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors flex items-center justify-between ${p.id === selectedProductId ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600' : 'text-slate-700 dark:text-slate-300'
+                      }`}
+                  >
+                    <span className="truncate">{p.name}</span>
+                    <span className="text-xs text-slate-500 flex-shrink-0 ml-2">{formatPrice(p.selling_price)}</span>
+                  </button>
+                ))
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// Searchable Customer Dropdown Component
+function SearchableCustomerSelect({ customers, selectedCustomerId, onSelect }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const dropdownRef = useRef(null);
+  const inputRef = useRef(null);
+
+  // Get selected customer
+  const selectedCustomer = customers.find(c => c.id === selectedCustomerId);
+
+  // Filter customers based on search
+  const filteredCustomers = customers.filter(c => {
+    const lowerSearch = search.toLowerCase();
+    const nameMatch = c.fullname?.toLowerCase().includes(lowerSearch);
+    const emailMatch = c.email?.toLowerCase().includes(lowerSearch);
+    return nameMatch || emailMatch;
+  });
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setIsOpen(false);
+        setSearch('');
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Focus search input when dropdown opens
+  useEffect(() => {
+    if (isOpen && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isOpen]);
+
+  const handleSelect = (customerId) => {
+    onSelect(customerId);
+    setIsOpen(false);
+    setSearch('');
+  };
+
+  return (
+    <div ref={dropdownRef} className="relative">
+      {/* Trigger Button */}
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-sm text-left flex items-center justify-between gap-2"
+      >
+        <span className={selectedCustomer ? 'text-slate-900 dark:text-white' : 'text-slate-400'}>
+          {selectedCustomer ? `${selectedCustomer.fullname} ${selectedCustomer.email ? `(${selectedCustomer.email})` : ''}` : 'Walk-in Customer'}
+        </span>
+        <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+
+      {/* Dropdown */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="absolute z-50 bottom-full left-0 right-0 mb-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl overflow-hidden"
+          >
+            {/* Search Input */}
+            <div className="p-2 border-b border-slate-200 dark:border-slate-700">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search by name or email"
+                  className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+            </div>
+
+            {/* Options List */}
+            <div className="max-h-48 overflow-y-auto">
+              <button
+                onClick={() => handleSelect(null)}
+                className={`w-full px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex flex-col ${!selectedCustomerId ? 'bg-indigo-50 dark:bg-indigo-900/30' : ''
+                  }`}
+              >
+                <span className="font-medium text-slate-900 dark:text-white">Walk-in Customer</span>
+              </button>
+
+              {filteredCustomers.length === 0 && search && (
+                <div className="px-3 py-4 text-sm text-slate-500 text-center">
+                  No customers found
+                </div>
+              )}
+
+              {filteredCustomers.map(c => (
+                <button
+                  key={c.id}
+                  onClick={() => handleSelect(c.id)}
+                  className={`w-full px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex flex-col ${selectedCustomerId === c.id ? 'bg-indigo-50 dark:bg-indigo-900/30' : ''
+                    }`}
+                >
+                  <span className="font-medium text-slate-900 dark:text-white">{c.fullname}</span>
+                  {c.email && (
+                    <span className="text-xs text-slate-500">{c.email}</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }

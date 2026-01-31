@@ -197,20 +197,33 @@ const inventoryService = {
     const results = { successful: [], failed: [], offline: false };
 
     try {
-      // If we're effectively offline, queue all
-      // Note: The caller usually checks isOnline, but we can double check or just try/catch
-
-      // Process in parallel
+      // Process each item
       const promises = items.map(async (item) => {
         try {
-          await this.restockProduct(
-            item.productId,
-            storeId,
-            item.quantity,
-            item.reason,
-            userEmail
-          );
-          return { success: true, item };
+          if (item.isUnique && item.deviceIds && item.deviceIds.length > 0) {
+            // For unique items, add each IMEI individually
+            for (const imei of item.deviceIds) {
+              await this.addImei(
+                item.productId,
+                imei,
+                storeId,
+                userEmail
+              );
+            }
+            return { success: true, item };
+          } else if (!item.isUnique && item.quantity > 0) {
+            // For non-unique items, use standard restock
+            await this.restockProduct(
+              item.productId,
+              storeId,
+              item.quantity,
+              item.reason,
+              userEmail
+            );
+            return { success: true, item };
+          } else {
+            return { success: false, item, error: 'Invalid item configuration' };
+          }
         } catch (err) {
           console.error(`Failed to restock ${item.name}:`, err);
           return { success: false, item, error: err };
@@ -221,12 +234,6 @@ const inventoryService = {
 
       results.successful = outcomes.filter(o => o.success).map(o => o.item);
       results.failed = outcomes.filter(o => !o.success);
-
-      // Check if any returned { offline: true } which is a special signature from restockProduct
-      // actually restockProduct returns { oldQty, newQty } OR { offline: true }
-      // But we are wrapping it above. 
-      // Wait, restockProduct handles its own offline queuing if it fails! 
-      // So if restockProduct returns { offline: true }, it technically "succeeded" in queuing.
 
       return results;
     } catch (err) {

@@ -6,22 +6,34 @@ import useCurrency from './hooks/useCurrency'; // Adjust path if needed
 const InventoryCard = forwardRef(({
   item,
   lowStockThreshold = 5,
-  onClick
+  onClick,
+  soldImeis = new Set()
 }, ref) => {
   const { formatPrice } = useCurrency(); // Dynamic currency formatter
 
   const product = item?.dynamic_product;
   if (!product) return null;
 
-  const isLowStock = item.available_qty <= lowStockThreshold;
-  const isOutOfStock = item.available_qty <= 0;
   const isUnique = product.is_unique;
-  const totalImeis = isUnique && product.dynamic_product_imeis
-    ? product.dynamic_product_imeis.split(',').map(i => i.trim()).filter(Boolean).length
-    : 0;
 
-  // Calculate available tracked IMEIs (Total - Sold)
-  const imeiCount = Math.max(0, totalImeis - (item.quantity_sold || 0));
+  // Get all IMEIs for unique products
+  const imeis = isUnique && product.dynamic_product_imeis
+    ? product.dynamic_product_imeis.split(',').map(i => i.trim()).filter(Boolean)
+    : [];
+  const totalImeis = imeis.length;
+
+  // Calculate actual sold count from soldImeis set instead of stale item.quantity_sold
+  const actualSoldCount = isUnique
+    ? imeis.filter(imei => soldImeis.has(imei)).length
+    : (item.quantity_sold || 0);
+
+  // Calculate available count for unique products
+  const imeiCount = Math.max(0, totalImeis - actualSoldCount);
+
+  // For unique items, use IMEI-based count as the true stock count
+  const displayQty = isUnique ? imeiCount : item.available_qty;
+  const displayLowStock = displayQty <= lowStockThreshold;
+  const displayOutOfStock = displayQty <= 0;
 
   return (
     <motion.div
@@ -34,20 +46,20 @@ const InventoryCard = forwardRef(({
       className={`
         relative p-2.5 sm:p-3.5 bg-white dark:bg-slate-800 rounded-lg border cursor-pointer active:scale-95
         transition-all duration-200 hover:shadow-lg w-full
-        ${isOutOfStock
+        ${displayOutOfStock
           ? 'border-red-200 dark:border-red-800 bg-red-50/50 dark:bg-red-900/10'
-          : isLowStock
+          : displayLowStock
             ? 'border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-900/10'
             : 'border-slate-200 dark:border-slate-700'
         }
       `}
     >
-      {(isOutOfStock || isLowStock) && (
+      {(displayOutOfStock || displayLowStock) && (
         <div className={`
           absolute -top-2 -right-2 px-1.5 py-0.5 rounded-full text-[10px] sm:text-xs font-medium flex-shrink-0
-          ${isOutOfStock ? 'bg-red-500 text-white' : 'bg-amber-500 text-white'}
+          ${displayOutOfStock ? 'bg-red-500 text-white' : 'bg-amber-500 text-white'}
         `}>
-          {isOutOfStock ? 'Out' : 'Low'}
+          {displayOutOfStock ? 'Out' : 'Low'}
         </div>
       )}
 
@@ -85,14 +97,14 @@ const InventoryCard = forwardRef(({
             <div className="flex items-center gap-0.5 flex-shrink-0">
               <div className={`
                 w-6 h-6 sm:w-7 sm:h-7 rounded flex items-center justify-center text-[10px] sm:text-xs font-bold
-                ${isOutOfStock
+                ${displayOutOfStock
                   ? 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300'
-                  : isLowStock
+                  : displayLowStock
                     ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300'
                     : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300'
                 }
               `}>
-                {item.available_qty}
+                {displayQty}
               </div>
               <span className="text-[9px] sm:text-xs text-slate-500 whitespace-nowrap">in</span>
             </div>
@@ -112,12 +124,12 @@ const InventoryCard = forwardRef(({
             )}
           </div>
 
-          <div className="flex items-center justify-between gap-1.5 mt-1.5 sm:mt-2">
-            <span className="text-[10px] sm:text-xs font-semibold text-slate-700 dark:text-slate-300 flex-shrink-0">
+          <div className="flex items-center justify-between gap-1.5 mt-1.5 sm:mt-2 min-w-0">
+            <span className="text-[10px] sm:text-xs font-semibold text-slate-700 dark:text-slate-300 truncate" title={formatPrice(product.selling_price ?? 0)}>
               {formatPrice(product.selling_price ?? 0)}
             </span>
             {product.purchase_price != null && (
-              <span className="text-[9px] text-slate-400 hidden sm:inline truncate">
+              <span className="text-[9px] text-slate-400 hidden sm:inline truncate" title={formatPrice(product.purchase_price)}>
                 {formatPrice(product.purchase_price)}
               </span>
             )}

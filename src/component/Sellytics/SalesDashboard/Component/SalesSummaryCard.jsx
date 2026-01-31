@@ -45,7 +45,7 @@ export default function SalesSummaryCard({ metrics }) {
               Total Revenue
             </p>
             <p className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white mt-0.5 truncate">
-              {formatPrice(metrics.totalRevenue || 0)}
+              {formatPrice(metrics.totalRevenue || 0, { abbreviate: false })}
             </p>
           </div>
         </div>

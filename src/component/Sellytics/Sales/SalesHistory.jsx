@@ -138,8 +138,8 @@ export default function SalesHistory({
                 setCurrentPage(1);
               }}
               className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg text-xs font-medium transition-colors capitalize active:scale-95 ${dateFilter === filter
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                ? 'bg-indigo-600 text-white'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                 }`}
             >
               {filter}
@@ -147,7 +147,7 @@ export default function SalesHistory({
           ))}
 
           {/* Totals Badge */}
-          <div className="ml-auto text-xs sm:text-xs font-medium text-emerald-600 dark:text-emerald-400 flex-shrink-0">
+          <div className="ml-auto text-xs sm:text-xs font-medium text-emerald-600 dark:text-emerald-400 flex-shrink-0 max-w-[50%] truncate" title={`${filteredByDate.length} sales • ${formatPrice(filteredTotal)}`}>
             {filteredByDate.length} • {formatPrice(filteredTotal)}
           </div>
         </div>
@@ -208,8 +208,8 @@ export default function SalesHistory({
 
                 {/* Right: Amount & Actions */}
                 <div className="flex items-center gap-2 sm:gap-2.5 md:gap-3 ml-1 sm:ml-2 md:ml-3 flex-shrink-0">
-                  <div className="text-right min-w-fit">
-                    <div className="font-bold text-emerald-600 dark:text-emerald-400 text-xs sm:text-sm">
+                  <div className="text-right min-w-0 max-w-[120px] sm:max-w-[160px]">
+                    <div className="font-bold text-emerald-600 dark:text-emerald-400 text-xs sm:text-sm truncate" title={formatPrice(sale.amount)}>
                       {formatPrice(sale.amount)}
                     </div>
                     {sale.deviceIds?.length > 0 && (

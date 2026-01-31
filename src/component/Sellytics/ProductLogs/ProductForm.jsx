@@ -93,6 +93,12 @@ export default function ProductForm({ onSave, onClose, isOnline }) {
     setProducts(prev => prev.filter((_, i) => i !== index));
   };
 
+  // Validation: Check if any unique item is missing at least one Product ID
+  const uniqueItemsMissingIds = products.filter(
+    p => p.is_unique && p.deviceIds.filter(Boolean).length === 0
+  );
+  const hasUniqueValidationError = uniqueItemsMissingIds.length > 0;
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -144,7 +150,13 @@ export default function ProductForm({ onSave, onClose, isOnline }) {
       onClose();
     } catch (err) {
       console.error(err);
-      toast.error('Failed to save products');
+      // Check if it's a duplicate product error - keep form open
+      if (err.isDuplicate) {
+        toast.error(err.message, { duration: 5000, icon: '⚠️' });
+        // Don't close the form - let user update the name
+        return;
+      }
+      toast.error(err.message || 'Failed to save products');
     } finally {
       setIsSubmitting(false);
     }
@@ -212,27 +224,42 @@ export default function ProductForm({ onSave, onClose, isOnline }) {
             </button>
 
             {/* Footer */}
-            <div className="flex gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
-              <button type="button" onClick={onClose} className="flex-1 px-6 py-3 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-medium">
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-indigo-900 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-medium shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Check className="w-4 h-4" />
-                    Save {products.length > 1 ? `${products.length} Products` : 'Product'}
-                  </>
-                )}
-              </button>
+            <div className="flex flex-col gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
+              {/* Validation Warning */}
+              {hasUniqueValidationError && (
+                <div className="flex items-center gap-2 p-3 bg-amber-50 dark:bg-amber-900/30 rounded-lg text-amber-700 dark:text-amber-400 text-sm">
+                  <Package className="w-4 h-4 flex-shrink-0" />
+                  <span>
+                    {uniqueItemsMissingIds.length === 1
+                      ? `"${uniqueItemsMissingIds[0].name || 'Unique item'}" requires at least one Product ID`
+                      : `${uniqueItemsMissingIds.length} unique items require at least one Product ID each`
+                    }
+                  </span>
+                </div>
+              )}
+
+              <div className="flex gap-3">
+                <button type="button" onClick={onClose} className="flex-1 px-6 py-3 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors font-medium">
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting || hasUniqueValidationError}
+                  className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-indigo-900 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-medium shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-4 h-4" />
+                      Save {products.length > 1 ? `${products.length} Products` : 'Product'}
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </form>
         </motion.div>
