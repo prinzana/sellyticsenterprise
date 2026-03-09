@@ -23,7 +23,7 @@ export default function useInventorySearch(inventory) {
         const matchesCategory = product.category?.toLowerCase().includes(term);
         const matchesBarcode = product.barcode?.toLowerCase().includes(term);
         const matchesImei = product.dynamic_product_imeis?.toLowerCase().includes(term);
-        
+
         if (!matchesName && !matchesCategory && !matchesBarcode && !matchesImei) {
           return false;
         }

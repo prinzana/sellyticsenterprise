@@ -27,7 +27,7 @@ const inventoryService = {
   },
 
   async fetchInventory(storeId) {
-    const { data, error } = await supabase
+    const { data: invData, error: invError } = await supabase
       .from('dynamic_inventory')
       .select(`
         id,
@@ -35,7 +35,6 @@ const inventoryService = {
         available_qty,
         quantity_sold,
         store_id,
-
         updated_at,
         dynamic_product (
           id,
@@ -50,8 +49,34 @@ const inventoryService = {
       `)
       .eq('store_id', storeId);
 
-    if (error) throw error;
-    return data || [];
+    if (invError) throw invError;
+
+    // Fetch pending debts to calculate reserved quantity
+    const { data: debtsData } = await supabase
+      .from('debts')
+      .select('dynamic_product_id, qty, deposited, owed')
+      .eq('store_id', storeId);
+
+    // Aggregate reserved quantity: only for debts that are not fully paid
+    const reservedMap = (debtsData || []).reduce((acc, debt) => {
+      const deposited = parseFloat(debt.deposited || 0);
+      const owed = parseFloat(debt.owed || 0);
+
+      if (deposited < owed) {
+        const prodId = parseInt(debt.dynamic_product_id);
+        acc[prodId] = (acc[prodId] || 0) + (parseInt(debt.qty) || 0);
+      }
+      return acc;
+    }, {});
+
+    // Merge reserved_qty into inventory
+    const finalInventory = (invData || []).map(item => ({
+      ...item,
+      reserved_qty: reservedMap[item.dynamic_product_id] || 0,
+      net_available: Math.max(0, (item.available_qty || 0) - (reservedMap[item.dynamic_product_id] || 0))
+    }));
+
+    return finalInventory;
   },
 
   async fetchCustomers(storeId) {

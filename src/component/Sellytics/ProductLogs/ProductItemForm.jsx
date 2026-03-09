@@ -48,21 +48,25 @@ export default function ProductItemForm({
   };
 
   const updateDeviceId = (deviceIndex, value) => {
-    updateProduct(p => ({
-      ...p,
-      deviceIds: p.deviceIds.map((id, i) =>
-        i === deviceIndex ? value : id
-      ),
-    }));
+    updateProduct(p => {
+      const newDeviceIds = [...p.deviceIds];
+      newDeviceIds[deviceIndex] = value;
+      return {
+        ...p,
+        deviceIds: newDeviceIds,
+      };
+    });
   };
 
   const updateDeviceSize = (deviceIndex, value) => {
-    updateProduct(p => ({
-      ...p,
-      deviceSizes: p.deviceSizes.map((s, i) =>
-        i === deviceIndex ? value : s
-      ),
-    }));
+    updateProduct(p => {
+      const newDeviceSizes = [...p.deviceSizes];
+      newDeviceSizes[deviceIndex] = value;
+      return {
+        ...p,
+        deviceSizes: newDeviceSizes,
+      };
+    });
   };
 
   const addDeviceRow = () => {
@@ -107,7 +111,7 @@ export default function ProductItemForm({
 
       {/* Content Container - Full Width with Responsive Padding */}
       <div className="w-full px-3.5 sm:px-5 md:px-6 py-4 sm:py-5 space-y-3 sm:space-y-4">
-        
+
         {/* Product Name */}
         <div>
           <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1.5 block">Product Name *</label>

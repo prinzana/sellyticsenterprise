@@ -92,6 +92,8 @@ export default function ProductDetailSheet({
     return imeis.length - actualSoldCount;
   }, [isUnique, imeis.length, actualSoldCount, item]);
 
+  const reservedQty = item?.reserved_qty || 0;
+
   if (!item || !product) return null;
 
   return (
@@ -210,23 +212,37 @@ export default function ProductDetailSheet({
 
           {/* Quick Stats */}
 
-          <div className="grid grid-cols-3 gap-2 sm:gap-3 p-3 sm:p-5 border-b dark:border-slate-800">
+          <div className={`grid ${reservedQty > 0 ? 'grid-cols-4' : 'grid-cols-3'} gap-2 sm:gap-3 p-3 sm:p-5 border-b dark:border-slate-800`}>
 
             <div className="text-center">
 
-              <div className={`text-xl sm:text-2xl font-bold ${actualAvailableCount <= 0 ? 'text-red-600' :
+              <div className={`text-xl sm:text-2xl font-bold ${(actualAvailableCount - reservedQty) <= 0 ? 'text-red-600' :
 
-                actualAvailableCount <= 5 ? 'text-amber-600' : 'text-emerald-600'
+                (actualAvailableCount - reservedQty) <= 5 ? 'text-amber-600' : 'text-emerald-600'
 
                 }`}>
 
-                {actualAvailableCount}
+                {Math.max(0, actualAvailableCount - reservedQty)}
 
               </div>
 
               <div className="text-xs text-slate-500">In Stock</div>
 
             </div>
+
+            {reservedQty > 0 && (
+              <div className="text-center">
+
+                <div className="text-xl sm:text-2xl font-bold text-amber-600">
+
+                  {reservedQty}
+
+                </div>
+
+                <div className="text-xs text-slate-500">Unpaid</div>
+
+              </div>
+            )}
 
             <div className="text-center">
 

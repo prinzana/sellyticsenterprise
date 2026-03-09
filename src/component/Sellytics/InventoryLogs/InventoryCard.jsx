@@ -30,8 +30,12 @@ const InventoryCard = forwardRef(({
   // Calculate available count for unique products
   const imeiCount = Math.max(0, totalImeis - actualSoldCount);
 
-  // For unique items, use IMEI-based count as the true stock count
-  const displayQty = isUnique ? imeiCount : item.available_qty;
+  // Get reserved quantity from pending unpaid supplies
+  const reservedQty = item.reserved_qty || 0;
+
+  // For unique items, use IMEI-based count minus reserved; for non-unique, use available_qty minus reserved
+  const baseQty = isUnique ? imeiCount : (item.available_qty || 0);
+  const displayQty = Math.max(0, baseQty - reservedQty);
   const displayLowStock = displayQty <= lowStockThreshold;
   const displayOutOfStock = displayQty <= 0;
 
