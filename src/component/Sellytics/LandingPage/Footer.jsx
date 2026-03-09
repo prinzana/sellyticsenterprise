@@ -1,32 +1,32 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import {  Linkedin, Instagram,  Mail, Phone, MapPin } from 'lucide-react';
+import { Linkedin, Instagram, Mail, Phone, MapPin } from 'lucide-react';
 import logo from '../../Assets/newlogo.png';
 const footerLinks = {
   Product: [
     { name: 'Features', href: '#features' },
     { name: 'Pricing', href: '#pricing' },
     { name: 'Use Cases', href: '#use-cases' },
-  
+
   ],
   Company: [
     { name: 'About Us', href: '#' },
     //{ name: 'Team', href: '#team' },
     //{ name: 'Careers', href: '#' },
-   // { name: 'Press', href: '#' },
+    // { name: 'Press', href: '#' },
     //{ name: 'Blog', href: '#' },
   ],
 
   //Legal: [
-    //{ name: 'Privacy Policy', href: '#' },
-    //{ name: 'Terms of Service', href: '#' },
-   // { name: 'Cookie Policy', href: '#' },
-    //{ name: 'GDPR', href: '#' },
+  //{ name: 'Privacy Policy', href: '#' },
+  //{ name: 'Terms of Service', href: '#' },
+  // { name: 'Cookie Policy', href: '#' },
+  //{ name: 'GDPR', href: '#' },
   //],
 };
 
 const socialLinks = [
- // { icon: Twitter, href: '#', label: 'Twitter' },
+  // { icon: Twitter, href: '#', label: 'Twitter' },
   { icon: Linkedin, href: 'https://www.linkedin.com/company/sellyticshq/', label: 'LinkedIn' },
   { icon: Instagram, href: 'https://www.instagram.com/sellyticshq?igsh=Mjd5cHAwMmlhNXYx&utm_source=qr', label: 'Instagram' },
   //{ icon: Facebook, href: '#', label: 'Facebook' },
@@ -41,17 +41,17 @@ export default function Footer() {
           {/* Logo & Description */}
           <div className="col-span-2">
             <Link to="/" className="flex items-center gap-2">
-              <div  className="h-16 sm:h-20 md:h-28 w-auto min-h-[48px] max-h-[80%] max-w-[80%]">
-                <img src={logo}   
+              <div className="h-16 sm:h-20 md:h-28 w-auto min-h-[48px] max-h-[80%] max-w-[80%]">
+                <img src={logo}
                   alt="Sellytics Logo"
                   className="w-full h-full object-contain"
                 />
               </div>
             </Link>
             <p className="text-sm sm:text-base text-slate-400 mb-6 max-w-xs">
-              The modern way to manage inventory, track sales, and grow your business.
+              Sellytics — the modern way to manage inventory, track sales, and grow your retail business. Offline-first. Mobile-optimized. AI-powered.
             </p>
-            
+
             {/* Contact Info */}
             <div className="space-y-3">
               <a href="mailto:hello@sellytics.com" className="flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors">
@@ -94,7 +94,7 @@ export default function Footer() {
           <p className="text-sm text-slate-500 text-center sm:text-left">
             © {new Date().getFullYear()} Sellytics. All rights reserved.
           </p>
-          
+
           {/* Social Links */}
           <div className="flex items-center gap-4">
             {socialLinks.map((social) => (

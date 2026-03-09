@@ -1,3 +1,17 @@
 # https://www.robotstxt.org/robotstxt.html
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /dashboard
+Disallow: /admin-dashboard
+Disallow: /team-dashboard
+Disallow: /owner-dashboard
+Disallow: /regdashboard
+Disallow: /admin
+Disallow: /adminregister
+Disallow: /payment
+Disallow: /shareholders
+Disallow: /qrcodes
+Disallow: /rec
+
+# Sitemap
+Sitemap: https://sellyticshq.com/sitemap.xml

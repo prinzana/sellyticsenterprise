@@ -1,63 +1,272 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
 
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="%PUBLIC_URL%/favicon.ico" />
+<head>
+  <meta charset="utf-8" />
 
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="manifest" href="/site.webmanifest">
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="%PUBLIC_URL%/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
 
-    <!-- Basic Meta Tags -->
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#007bff" />
-    <meta name="description" content="Track and manage your retail stores with Sellytics." />
-    <meta name="author" content="Sellytics" />
-    <meta name="robots" content="index, follow" />
+  <!-- Canonical URL -->
+  <link rel="canonical" href="https://sellyticshq.com/" />
 
-    <!-- Open Graph (Social Media) -->
-    <meta property="og:title" content="Sellytics - Retailer's Tracking Buddie" />
-    <meta property="og:description" content="Track and manage your retail stores with Sellytics." />
-    <meta property="og:url" content="https://sellytics.sprintifyhq.com/" />
-    <meta property="og:image" content="https://sellytics.sprintifyhq.com/og-android-chrome-192x192.png" />
-    <meta property="og:type" content="website" />
+  <!-- Basic Meta Tags -->
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="description"
+    content="Sellytics — the #1 offline-first inventory management & sales tracking app for retail businesses in Africa. Manage stock, track sales, generate receipts, and get AI insights — even without internet. Works on 2G networks." />
+  <meta name="author" content="Sellytics" />
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
 
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Sellytics - Retailer's Tracking Buddie" />
-    <meta name="twitter:description" content="Track and manage your retail stores with Sellytics." />
-    <meta name="twitter:image" content="https://sellytics.sprintifyhq.com/og-android-chrome-192x192.png" />
+  <!-- SEO Keywords -->
+  <meta name="keywords"
+    content="inventory management software, sales tracking app, offline POS system, retail inventory app, stock management Nigeria, multi-store management, business analytics Africa, mobile inventory management, offline inventory app, POS system small business, AI inventory management, shop management app, retail analytics, expense tracking, receipt generator, wholesale distribution app, warehouse inventory, store audit tool, Sellytics" />
 
-    <!-- Additional Meta Tags -->
-    <meta name="language" content="en" />
-    <meta name="revisit-after" content="7 days" />
-    <meta name="distribution" content="global" />
-    <meta name="rating" content="general" />
+  <!-- Open Graph (Social Media) -->
+  <meta property="og:title" content="Sellytics — Offline-First Inventory & Sales Tracking for Retail Businesses" />
+  <meta property="og:description"
+    content="Manage inventory, track sales, and grow your retail business — even offline. Mobile-first. AI-powered. Built for Africa and emerging markets." />
+  <meta property="og:url" content="https://sellyticshq.com/" />
+  <meta property="og:image" content="https://sellyticshq.com/android-chrome-512x512.png" />
+  <meta property="og:image:width" content="512" />
+  <meta property="og:image:height" content="512" />
+  <meta property="og:image:alt" content="Sellytics - Inventory & Business Intelligence Platform" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Sellytics" />
+  <meta property="og:locale" content="en_US" />
 
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Sellytics — Offline-First Inventory & Sales Tracking for Retail Businesses" />
+  <meta name="twitter:description"
+    content="Manage inventory, track sales, and grow your retail business — even offline. Mobile-first. AI-powered. Built for Africa and emerging markets." />
+  <meta name="twitter:image" content="https://sellyticshq.com/android-chrome-512x512.png" />
+  <meta name="twitter:image:alt" content="Sellytics - Inventory & Business Intelligence Platform" />
+  <meta name="twitter:site" content="@sellyticshq" />
 
-   <!-- Global site tag (gtag.js) - Google Analytics -->
+  <!-- Additional Meta Tags -->
+  <meta name="language" content="en" />
+  <meta name="revisit-after" content="3 days" />
+  <meta name="distribution" content="global" />
+  <meta name="rating" content="general" />
+  <meta name="application-name" content="Sellytics" />
+  <meta name="apple-mobile-web-app-title" content="Sellytics" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
 
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-T02YNQ3W0S"></script>
+  <!-- Structured Data: Organization -->
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Sellytics",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web, Android, iOS",
+      "description": "Offline-first inventory management and sales tracking platform for retail businesses. Works on 2G networks with AI-powered insights.",
+      "url": "https://sellyticshq.com/",
+      "image": "https://sellyticshq.com/android-chrome-512x512.png",
+      "author": {
+        "@type": "Organization",
+        "name": "Sellytics",
+        "url": "https://sellyticshq.com/",
+        "logo": "https://sellyticshq.com/android-chrome-192x192.png",
+        "sameAs": [
+          "https://www.linkedin.com/company/sellyticshq/",
+          "https://www.instagram.com/sellyticshq"
+        ],
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "email": "hello@sellytics.com",
+          "contactType": "customer service",
+          "areaServed": ["NG", "GH", "KE", "ZA", "US", "GB"],
+          "availableLanguage": "English"
+        }
+      },
+      "offers": [
+        {
+          "@type": "Offer",
+          "name": "Free Plan",
+          "price": "0",
+          "priceCurrency": "NGN",
+          "description": "Up to 50 products, basic sales tracking, inventory management"
+        },
+        {
+          "@type": "Offer",
+          "name": "Premium Plan",
+          "price": "15000",
+          "priceCurrency": "NGN",
+          "description": "Unlimited products, advanced analytics, team collaboration, priority support"
+        },
+        {
+          "@type": "Offer",
+          "name": "Business Plan",
+          "price": "25000",
+          "priceCurrency": "NGN",
+          "description": "Multi-store management, dedicated warehouse, account manager"
+        }
+      ],
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.9",
+        "ratingCount": "1000",
+        "bestRating": "5"
+      },
+      "featureList": [
+        "Offline-first inventory management",
+        "Real-time sales analytics",
+        "Multi-store dashboard",
+        "AI-powered recommendations",
+        "Smart stock alerts",
+        "Store audit tool",
+        "Receipt generation",
+        "Expense tracking",
+        "Team collaboration",
+        "Works on 2G/3G networks"
+      ]
+    }
+    </script>
 
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-T02YNQ3W0S', { debug_mode: true });
-</script>
+  <!-- Structured Data: FAQ (matches FAQSection.jsx) -->
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Does Sellytics work without internet?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes! Sellytics is built offline-first. You can record sales, add products, manage inventory, and run your entire business without internet. All changes automatically sync when you reconnect."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How does Sellytics work on slow 2G/3G networks?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Sellytics is optimized for low-bandwidth areas. We use intelligent data compression and smart caching to ensure lightning-fast performance even on 2G networks. Most actions use less than 50KB of data."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I get started with Sellytics?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Simply click Start Free Trial and create your account. Our setup wizard will guide you through adding your first products and making your first sale. Most users are fully set up within 10 minutes."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I import my existing inventory into Sellytics?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes! You can import products via CSV file, or use our bulk add feature. We also offer migration assistance for Premium and Business plan users."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is my business data secure with Sellytics?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Absolutely. We use bank-level encryption for all data, regular automated backups, and comply with international data protection standards. Your business data is safe with us."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I manage multiple stores with Sellytics?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, our Business plan supports up to 3 stores with a centralized dashboard. You can view sales, inventory, and staff activity across all locations in real-time."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is Sellytics easy to use for non-technical people?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Absolutely! Sellytics has a simplified UX designed for all literacy levels and technical abilities. Your entire team — from market vendors to store managers — can use it from day one."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What kind of customer support does Sellytics offer?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Free users get email support. Premium users enjoy 24/7 priority support via chat and phone. Business users get a dedicated account manager."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is Sellytics and who is it for?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Sellytics is a mobile-first, offline-ready inventory management and sales tracking platform built for retail businesses in Africa and emerging markets. It's perfect for phone shops, supermarkets, open market vendors, multi-store owners, and distributors."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does Sellytics have a free plan?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes! Sellytics offers a free plan that includes up to 50 products, basic sales tracking, inventory management, and expense tracking with 30-day sales history. Upgrade anytime for unlimited products and advanced features."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How much does Sellytics cost?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Sellytics offers three plans: Free (₦0/month), Premium (₦15,000/month) for growing businesses with unlimited products and team collaboration, and Business (₦25,000/month) for multi-store operations with up to 3 stores and a dedicated account manager. Save 20% with yearly billing."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can Sellytics generate receipts for customers?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes! Sellytics Premium and Business plans include printable receipt generation. You can generate, share, and print professional receipts for every transaction."
+          }
+        }
+      ]
+    }
+    </script>
 
-    <!-- End Google Tag Manager -->
+  <!-- Structured Data: Website with SearchAction -->
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Sellytics",
+      "url": "https://sellyticshq.com/",
+      "description": "Offline-first inventory management and sales tracking for retail businesses",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://sellyticshq.com/?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
 
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-T02YNQ3W0S"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-T02YNQ3W0S', { debug_mode: true });
+  </script>
 
+  <title>Sellytics — #1 Offline Inventory Management & Sales Tracking App for Retail Businesses</title>
+</head>
 
+<body>
+  <noscript>You need to enable JavaScript to run this app.</noscript>
+  <div id="root"></div>
+</body>
 
-    <title>Sellytics - Retailer's Tracking Buddie</title>
-  </head>
-  <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
-  </body>
 </html>

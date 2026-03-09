@@ -12,15 +12,15 @@ const floatingIcons = [
 
 export default function HeroSection() {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20 sm:pt-24">
+    <section id="hero" aria-label="Sellytics - Inventory Management and Sales Tracking" className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20 sm:pt-24">
       {/* Background Elements */}
       <div className="absolute inset-0">
         {/* Gradient Orbs */}
         <div className="absolute top-1/4 left-1/4 w-[300px] sm:w-[500px] h-[300px] sm:h-[500px] bg-indigo-600/20 rounded-full blur-[100px] sm:blur-[150px]" />
         <div className="absolute bottom-1/4 right-1/4 w-[250px] sm:w-[400px] h-[250px] sm:h-[400px] bg-purple-600/20 rounded-full blur-[100px] sm:blur-[120px]" />
-        
+
         {/* Grid Pattern */}
-        <div 
+        <div
           className="absolute inset-0 opacity-[0.02]"
           style={{
             backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
@@ -64,7 +64,7 @@ export default function HeroSection() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
-            <span className="text-xs sm:text-sm font-medium text-slate-300">Offline-First • Mobile-Optimized • AI-Powered</span>
+            <span className="text-xs sm:text-sm font-medium text-slate-300">Offline-First Inventory App • Mobile-Optimized • AI-Powered Analytics</span>
           </motion.div>
 
           {/* Headline */}
@@ -75,11 +75,11 @@ export default function HeroSection() {
             className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-4 sm:mb-6"
           >
             <span className="bg-gradient-to-r from-white via-white to-slate-400 bg-clip-text text-transparent">
-             Inventory & Business Intelligence Platform
+              Inventory Management & Sales Tracking
             </span>
             <br />
             <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-             Built for Modern Businesses
+              Built for Modern Retail Businesses
             </span>
           </motion.h1>
 
@@ -90,8 +90,8 @@ export default function HeroSection() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="max-w-2xl mx-auto text-base sm:text-lg md:text-xl text-slate-400 mb-8 sm:mb-10 px-4"
           >
-            <span className="text-white font-semibold">Mobile-first. Offline-ready.</span> Manage stock, track sales, 
-            and run your business seamlessly — even with low bandwidth. Built for every type of user.
+            <span className="text-white font-semibold">Mobile-first. Offline-ready.</span> The best inventory management software for retail businesses.
+            Manage stock, track sales, generate receipts, and get AI-powered insights — even without internet. Works perfectly on 2G/3G networks.
           </motion.p>
 
           {/* CTA Buttons */}
@@ -108,7 +108,7 @@ export default function HeroSection() {
               Start Free Trial
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
             </Link>
-           {/* <button className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-medium text-white border border-white/10 rounded-full hover:bg-white/5 transition-all duration-300 backdrop-blur-xl">
+            {/* <button className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-medium text-white border border-white/10 rounded-full hover:bg-white/5 transition-all duration-300 backdrop-blur-xl">
               <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white/10 flex items-center justify-center">
                 <Play className="w-4 h-4 sm:w-5 sm:h-5 ml-0.5" />
               </div>
@@ -124,9 +124,9 @@ export default function HeroSection() {
             className="mt-16 sm:mt-24 grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8 max-w-4xl mx-auto"
           >
             {[
-              { value: '1K+', label: 'Active Users' },
-              { value: '500K+', label: 'Sales Tracked' },
-              { value: '99.9%', label: 'Uptime' },
+              { value: '1K+', label: 'Active Retail Users' },
+              { value: '500K+', label: 'Sales Tracked Offline' },
+              { value: '99.9%', label: 'Platform Uptime' },
               { value: '4.9/5', label: 'User Rating' },
             ].map((stat, index) => (
               <div key={index} className="text-center p-4 sm:p-6 rounded-2xl bg-white/[0.02] border border-white/5 backdrop-blur-xl">

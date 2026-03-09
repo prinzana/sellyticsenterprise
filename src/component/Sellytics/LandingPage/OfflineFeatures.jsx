@@ -44,7 +44,7 @@ const techSpecs = [
 
 export default function OfflineFeatures() {
   return (
-    <section id="offline" className="relative py-20 sm:py-32 overflow-hidden bg-slate-950">
+    <section id="offline" aria-label="Offline Inventory Management Features" className="relative py-20 sm:py-32 overflow-hidden bg-slate-950">
       {/* Background */}
       <div className="absolute inset-0">
         <div className="absolute top-1/4 right-1/4 w-[500px] h-[500px] bg-emerald-600/10 rounded-full blur-[150px]" />
@@ -77,8 +77,8 @@ export default function OfflineFeatures() {
             </span>
           </h2>
           <p className="max-w-3xl mx-auto text-base sm:text-lg text-slate-400 px-4 mb-8 sm:mb-10">
-           Sellytics works perfectly in low-bandwidth areas, 
-            remote locations, and crowded markets. Run your business anywhere, anytime — 
+            Sellytics works perfectly in low-bandwidth areas,
+            remote locations, and crowded markets. Run your business anywhere, anytime —
             with or without internet.
           </p>
 
@@ -116,7 +116,7 @@ export default function OfflineFeatures() {
               <div className="relative bg-slate-900 rounded-[2.5rem] border-[8px] sm:border-[10px] border-slate-800 shadow-2xl overflow-hidden">
                 {/* Notch */}
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 sm:w-36 h-6 sm:h-7 bg-slate-800 rounded-b-3xl z-10" />
-                
+
                 {/* Screen Content */}
                 <div className="relative aspect-[9/19] bg-gradient-to-b from-slate-950 to-slate-900 p-6">
                   {/* Status Bar */}
@@ -139,7 +139,7 @@ export default function OfflineFeatures() {
                         <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                         <span className="text-xs text-emerald-300 font-medium">Recording Sale...</span>
                       </div>
-                      
+
                       <div className="h-1.5 bg-emerald-500/20 rounded-full overflow-hidden">
                         <motion.div
                           className="h-full bg-emerald-500"
@@ -148,14 +148,14 @@ export default function OfflineFeatures() {
                           transition={{ duration: 2, repeat: Infinity }}
                         />
                       </div>
-                      
+
                     </div>
                     <div className="bg-indigo-600/20 rounded-xl p-3 border border-emerald-500/30">
-                        <div className="flex items-center gap-2 mb-2">
+                      <div className="flex items-center gap-2 mb-2">
                         <div className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
                         <span className="text-xs text-indigo-300 font-medium">Recording Inventory...</span>
                       </div>
-                      
+
                       <div className="h-1.5 bg-emerald-500/20 rounded-full overflow-hidden">
                         <motion.div
                           className="h-full bg-emerald-500"

@@ -1,0 +1,107 @@
+Sellytics SEO Strategy & Google Search Console Keywords
+IMPORTANT
+
+Live URL: https://sellyticshq.com/ Target Markets: Nigeria, Africa, Emerging Markets, Global SMBs
+
+🎯 Primary Target Keywords (High Priority)
+These are the main keywords to add in Google Search Console and optimize for:
+
+#	Keyword	Search Intent	Monthly Volume Est.	Priority
+1	inventory management software	Commercial	High	⭐⭐⭐
+2	retail inventory management app	Commercial	Medium-High	⭐⭐⭐
+3	sales tracking software	Commercial	High	⭐⭐⭐
+4	offline inventory management	Commercial	Medium	⭐⭐⭐
+5	POS system for small business	Commercial	High	⭐⭐⭐
+6	inventory management app Nigeria	Local-Commercial	Medium	⭐⭐⭐
+7	business management software Africa	Commercial	Medium	⭐⭐⭐
+8	offline POS system	Commercial	Medium	⭐⭐⭐
+9	multi-store inventory management	Commercial	Medium	⭐⭐⭐
+10	retail analytics software	Commercial	Medium	⭐⭐⭐
+🔑 Secondary Keywords (Medium Priority)
+#	Keyword	Category
+11	stock management app	Product
+12	inventory tracking app for shops	Product
+13	best inventory app for retail stores	Product
+14	mobile inventory management	Product
+15	sales analytics dashboard	Feature
+16	smart inventory alerts	Feature
+17	AI-powered inventory management	Feature
+18	store audit tool	Feature
+19	expense tracking for business	Feature
+20	receipt generator for business	Feature
+🌍 Geo-Targeted Keywords (Nigeria & Africa)
+#	Keyword	Region
+21	inventory management app Lagos	Lagos
+22	POS software Nigeria	Nigeria
+23	best business app Nigeria	Nigeria
+24	retail management software Africa	Africa
+25	stock management app Nigeria	Nigeria
+26	sales tracking app Africa	Africa
+27	inventory app for market traders Nigeria	Nigeria
+28	business analytics software Nigeria	Nigeria
+29	offline business app Africa	Africa
+30	shop management app Nigeria	Nigeria
+🏪 Industry/Use-Case Keywords
+#	Keyword	Use Case
+31	phone shop inventory management	Electronics Retail
+32	electronics store inventory app	Electronics Retail
+33	supermarket inventory management software	Supermarkets
+34	wholesale distribution management app	Distributors
+35	open market business management app	Market Vendors
+36	multi-branch store management	Multi-Store
+37	warehouse inventory management	Warehouse
+38	supply chain tracking app	Supply Chain
+39	retail staff management app	Team Management
+40	inventory management for low bandwidth	Offline/Low Network
+💡 Long-Tail Keywords (Blog/Content SEO)
+#	Keyword	Content Type
+41	how to manage inventory for small business	Blog
+42	best free inventory management app 2026	Listicle
+43	offline inventory app that works without internet	Blog
+44	how to track sales and expenses for retail store	Blog
+45	inventory management app that works on 2G network	Blog
+46	how to manage multiple retail stores	Blog
+47	best mobile POS system no internet required	Listicle
+48	AI inventory management for small business	Blog
+49	how to do stock audit for retail shop	How-to
+50	affordable inventory software for African businesses	Blog
+🔍 Competitor Comparison Keywords
+#	Keyword
+51	sellytics vs zoho inventory
+52	sellytics vs square POS
+53	sellytics vs loyverse
+54	sellytics vs stockcount
+55	best inventory app alternative to excel
+📋 Google Search Console Setup Checklist
+Step 1: Verify Site Ownership
+Go to Google Search Console
+Add property: https://sellytics.sprintifyhq.com/
+Verify via DNS record, HTML tag, or Netlify integration
+Step 2: Submit Sitemap
+Submit: https://sellytics.sprintifyhq.com/sitemap.xml
+Step 3: Add Target Keywords as Performance Filters
+Use the Performance tab → Queries to monitor all keywords above
+Filter by country: Nigeria, Ghana, Kenya, South Africa, US, UK
+Step 4: Monitor & Iterate
+Check Coverage tab weekly for indexing errors
+Review Core Web Vitals monthly
+Track CTR for each keyword group
+📄 Files Updated for SEO
+File	Changes
+index.html
+Enhanced meta tags, structured data, canonical URL
+robots.txt
+Added sitemap reference, crawler directives
+manifest.json
+Corrected app name and branding
+site.webmanifest
+Added app name and description
+FAQSection.jsx
+SEO-optimized FAQ with structured data schema
+HeroSection.jsx
+Optimized H1, meta content
+sitemap.xml
+NEW — XML sitemap for search engines
+TIP
+
+Quick Wins: Focus on keywords #1-10 first. These have the highest search volume and buying intent. Add blog content targeting keywords #41-50 for organic traffic growth.

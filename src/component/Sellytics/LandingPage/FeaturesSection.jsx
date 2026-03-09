@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  BarChart3, 
-  Bell, 
-  Package, 
-  Sparkles, 
-  AlertTriangle, 
+import {
+  BarChart3,
+  Bell,
+  Package,
+  Sparkles,
+  AlertTriangle,
   TrendingUp,
   Activity,
   CheckCircle2,
@@ -129,34 +129,34 @@ const DashboardDemo = () => {
 
 const MultiStoreDemo = () => {
   const stores = [
-    { 
-      id: 1, 
-      name: 'Buchi Stores', 
+    {
+      id: 1,
+      name: 'Buchi Stores',
       location: 'Lagos',
-      revenue: '$45.2K', 
-      orders: 234, 
+      revenue: '$45.2K',
+      orders: 234,
       trend: 'up',
       performance: 92,
       staff: 8,
       status: 'active'
     },
-    { 
-      id: 2, 
-      name: 'Calabar Branch', 
+    {
+      id: 2,
+      name: 'Calabar Branch',
       location: 'Calabar',
-      revenue: '$38.5K', 
-      orders: 189, 
+      revenue: '$38.5K',
+      orders: 189,
       trend: 'up',
       performance: 85,
       staff: 6,
       status: 'active'
     },
-    { 
-      id: 3, 
-      name: 'Airport Store', 
+    {
+      id: 3,
+      name: 'Airport Store',
       location: 'Aba',
-      revenue: '₦28.1K', 
-      orders: 142, 
+      revenue: '₦28.1K',
+      orders: 142,
       trend: 'down',
       performance: 71,
       staff: 5,
@@ -223,11 +223,10 @@ const MultiStoreDemo = () => {
                   </div>
                 </div>
               </div>
-              <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                store.status === 'active' 
+              <div className={`px-2 py-1 rounded-full text-xs font-medium ${store.status === 'active'
                   ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
                   : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
-              }`}>
+                }`}>
                 {store.status === 'active' ? '● Active' : '⚠ Warning'}
               </div>
             </div>
@@ -265,13 +264,12 @@ const MultiStoreDemo = () => {
               </div>
               <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
                 <motion.div
-                  className={`h-full rounded-full ${
-                    store.performance >= 85 
+                  className={`h-full rounded-full ${store.performance >= 85
                       ? 'bg-gradient-to-r from-emerald-500 to-green-400'
                       : store.performance >= 75
-                      ? 'bg-gradient-to-r from-violet-500 to-purple-400'
-                      : 'bg-gradient-to-r from-amber-500 to-orange-400'
-                  }`}
+                        ? 'bg-gradient-to-r from-violet-500 to-purple-400'
+                        : 'bg-gradient-to-r from-amber-500 to-orange-400'
+                    }`}
                   initial={{ width: 0 }}
                   animate={{ width: `${store.performance}%` }}
                   transition={{ duration: 1, delay: index * 0.2 }}
@@ -463,7 +461,7 @@ export default function FeaturesSection() {
   const [activeDemo, setActiveDemo] = useState(null);
 
   return (
-    <section id="features" className="relative py-20 sm:py-32 overflow-hidden">
+    <section id="features" aria-label="Sellytics Inventory Management Features" className="relative py-20 sm:py-32 overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950" />
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[150px]" />
 
@@ -485,8 +483,8 @@ export default function FeaturesSection() {
             </span>
           </h2>
           <p className="max-w-2xl mx-auto text-base sm:text-lg text-slate-400 px-4">
-            From inventory Intelligence Management to AI-powered insights, Sellytics provides 
-            all the tools you need to run a successful business.
+            From real-time sales analytics and AI-powered inventory insights to multi-store management, Sellytics provides
+            all the tools you need to run a successful retail business.
           </p>
         </motion.div>
 
@@ -507,11 +505,10 @@ export default function FeaturesSection() {
               <button
                 key={type}
                 onClick={() => setActiveDemo(activeDemo === type ? null : type)}
-                className={`px-4 sm:px-6 py-2.5 sm:py-3 rounded-full text-sm font-medium transition-all duration-300 ${
-                  activeDemo === type
+                className={`px-4 sm:px-6 py-2.5 sm:py-3 rounded-full text-sm font-medium transition-all duration-300 ${activeDemo === type
                     ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/25'
                     : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/10'
-                }`}
+                  }`}
               >
                 {type === 'dashboard' && '📊 Dashboard'}
                 {type === 'multistore' && '🏪 Multi-Store'}
@@ -552,9 +549,8 @@ export default function FeaturesSection() {
               key={index}
               variants={itemVariants}
               onClick={() => feature.hasDemo && setActiveDemo(feature.demoType)}
-              className={`group relative p-5 sm:p-8 rounded-2xl sm:rounded-3xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-all duration-500 hover:bg-white/[0.04] ${
-                feature.hasDemo ? 'cursor-pointer' : ''
-              }`}
+              className={`group relative p-5 sm:p-8 rounded-2xl sm:rounded-3xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-all duration-500 hover:bg-white/[0.04] ${feature.hasDemo ? 'cursor-pointer' : ''
+                }`}
             >
               {feature.hasDemo && (
                 <div className="absolute top-3 right-3 px-2 py-1 rounded-full bg-indigo-500/20 border border-indigo-500/30 text-xs text-indigo-300 font-medium">

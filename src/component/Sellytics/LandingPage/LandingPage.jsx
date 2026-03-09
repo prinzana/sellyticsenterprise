@@ -21,19 +21,21 @@ export default function LandingPage() {
     <div className="min-h-screen bg-slate-950 text-white overflow-x-hidden">
       <WhatsAppChatPopup />
       <Navbar />
-      <HeroSection />
-      <OfflineFeatures />
-      <FeatureScreens />
-      <FeaturesSection />
-      <MockupScreens />
-         {/*<WarehouseCTASection/> 
-      {/*<TeamSection>*/}
-      <HowItWorksSection />
-       <UseCasesSection />
-      <PricingSection />
-      <TestimonialsSection />s
-      <FAQSection />
-      <CTASection />
+      <main>
+        <HeroSection />
+        <OfflineFeatures />
+        <FeatureScreens />
+        <FeaturesSection />
+        <MockupScreens />
+        {/*<WarehouseCTASection/> 
+        {/*<TeamSection>*/}
+        <HowItWorksSection />
+        <UseCasesSection />
+        <PricingSection />
+        <TestimonialsSection />
+        <FAQSection />
+        <CTASection />
+      </main>
       <Footer />
     </div>
   );
