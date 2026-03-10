@@ -1,12 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { supabase } from '../../../supabaseClient';
+import React, { useState } from 'react';
+
 import {
   FaClock, FaCalendarAlt, FaArrowLeft, FaLock,
   FaTimes, FaCrown, FaSearch, FaChevronRight
 } from 'react-icons/fa';
+
+import useDashboardAccess from '../Stores/useDashboardAccess';
+import { hasFeature } from '../../../utils/planManager';
+
 import Clocking from './TmeSheet/Clocking';
-//import AdminTasks from './AdminTasks';
 import ScheduleManagement from './ScheduleManagement/ScheduleManagement';
+import TeamManagement from './TeamManagement';
+import { FaUsers } from 'react-icons/fa';
 
 const opsTools = [
   {
@@ -18,126 +23,51 @@ const opsTools = [
     isFreemium: true,
     category: 'Operations',
   },
-
   {
     key: 'schedules',
     label: 'Schedule Manager',
     icon: FaCalendarAlt,
     desc: 'Organize staff schedules efficiently.',
     component: <ScheduleManagement />,
+    featureKey: 'ADMIN_OPS',
     isFreemium: false,
     category: 'Operations',
+  },
+  {
+    key: 'team',
+    label: 'Team Management',
+    icon: FaUsers,
+    desc: 'Add, manage, and assign team members to stores.',
+    component: <TeamManagement />,
+    isFreemium: true,
+    category: 'People',
   },
 ];
 
 export default function AdminOps() {
-  const [shopName, setShopName] = useState('Store Admin');
+  const {
+    shopName,
+    userPlan,
+    registrationDate,
+    isLoading,
+    errorMessage,
+    setErrorMessage
+  } = useDashboardAccess();
+
   const [activeTool, setActiveTool] = useState(null);
-  const [isAuthorized, setIsAuthorized] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
-  useEffect(() => {
-    async function checkPremiumAccess() {
-      setIsLoading(true);
-      setErrorMessage('');
-      try {
-        const storeId = localStorage.getItem('store_id');
-        const userId = localStorage.getItem('user_id');
-        const userAccessRaw = localStorage.getItem('user_access');
-        let hasPremiumAccess = false;
-        let fetchedShopName = 'Store Admin';
-
-        if (!storeId && !userId) {
-          setErrorMessage('No store or user assigned. Contact your admin.');
-          setIsAuthorized(false);
-          setIsLoading(false);
-          return;
-        }
-
-        if (storeId) {
-          const { data: storeData, error: storeError } = await supabase
-            .from('stores')
-            .select('shop_name, premium')
-            .eq('id', storeId)
-            .single();
-
-          if (storeError) {
-            setErrorMessage('Failed to load store permissions.');
-            setIsAuthorized(false);
-            setIsLoading(false);
-            return;
-          }
-
-          fetchedShopName = storeData?.shop_name || 'Store Admin';
-          const isPremium = storeData.premium === true ||
-            (typeof storeData.premium === 'string' && storeData.premium.toLowerCase() === 'true');
-          if (isPremium) hasPremiumAccess = true;
-        }
-
-        if (!hasPremiumAccess && userId) {
-          const { data: userStores } = await supabase
-            .from('store_users')
-            .select('store_id')
-            .eq('id', userId);
-
-          if (userStores?.length > 0) {
-            const associatedStoreIds = userStores.map(us => us.store_id);
-            const { data: premiumStores } = await supabase
-              .from('stores')
-              .select('id, shop_name, premium')
-              .in('id', associatedStoreIds)
-              .eq('premium', true);
-
-            if (premiumStores?.length > 0) {
-              hasPremiumAccess = true;
-              fetchedShopName = premiumStores[0].shop_name || fetchedShopName;
-            }
-          }
-        }
-
-        if (!hasPremiumAccess && userAccessRaw) {
-          try {
-            const userAccess = JSON.parse(userAccessRaw);
-            const accessStoreIds = userAccess?.store_ids || [];
-            if (accessStoreIds.length > 0) {
-              const { data: premiumAccessStores } = await supabase
-                .from('stores')
-                .select('id, shop_name, premium')
-                .in('id', accessStoreIds)
-                .eq('premium', true);
-              if (premiumAccessStores?.length > 0) {
-                hasPremiumAccess = true;
-                fetchedShopName = premiumAccessStores[0].shop_name || fetchedShopName;
-              }
-            }
-          } catch (parseError) {
-            console.error('Error parsing user_access:', parseError.message);
-          }
-        }
-
-        setShopName(fetchedShopName);
-        setIsAuthorized(hasPremiumAccess);
-        if (!hasPremiumAccess) {
-          setErrorMessage('Some features are available only for premium users. Please upgrade your store’s subscription.');
-        }
-      } catch (error) {
-        console.error('Authorization check error:', error.message);
-        setErrorMessage('An unexpected error occurred. Please try again later.');
-        setIsAuthorized(false);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    checkPremiumAccess();
-  }, []);
+  // Admin Ops is generally authorized if you have the permission or are the owner
+  const isAuthorized = hasFeature('ADMIN_OPS', userPlan, registrationDate);
 
   const handleToolClick = (key) => {
     const tool = opsTools.find(t => t.key === key);
-    if (!tool.isFreemium && !isAuthorized) {
-      setErrorMessage(`Access Denied: ${tool.label} is a premium feature. Please upgrade your subscription.`);
+
+    const isAccessible = tool.isFreemium ||
+      (tool.featureKey ? hasFeature(tool.featureKey, userPlan, registrationDate) : isAuthorized);
+
+    if (!isAccessible) {
+      setErrorMessage(`Access Denied: ${tool.label} is a premium feature. Please upgrade to the ${tool.featureKey === 'MULTI_STORE' ? 'Business' : 'Premium'} Plan.`);
       return;
     }
     setActiveTool(key);

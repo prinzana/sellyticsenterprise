@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../../supabaseClient';
 import { featureKeyMapping } from './storeUsersToolsConfig';
+import { getEffectivePlan, PLANS } from '../../../utils/planManager';
 
 export default function useStoreUsersAccess() {
   const [shopName, setShopName] = useState('Store Owner');
@@ -8,6 +9,9 @@ export default function useStoreUsersAccess() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [isPremium, setIsPremium] = useState(false);
+  const [userPlan, setUserPlan] = useState(PLANS.FREE);
+  const [registrationDate, setRegistrationDate] = useState(null);
+  const [subscription, setSubscription] = useState(null);
 
   const fetchAllowedFeatures = async () => {
     try {
@@ -15,7 +19,6 @@ export default function useStoreUsersAccess() {
       setError('');
       const storeId = localStorage.getItem('store_id');
       const userId = localStorage.getItem('user_id');
-      const userAccessRaw = localStorage.getItem('user_access');
       let hasPremiumAccess = false;
       let fetchedShopName = 'Store Owner';
       let features = [];
@@ -34,10 +37,10 @@ export default function useStoreUsersAccess() {
         return;
       }
 
-      // Fetch store features and premium status
+      // Fetch store features and premium status (including plan for RBAC)
       const { data: storeData, error: storeError } = await supabase
         .from('stores')
-        .select('shop_name, allowed_features, premium')
+        .select('shop_name, allowed_features, premium, plan, created_at, owner_user_id')
         .eq('id', storeId)
         .single();
 
@@ -49,11 +52,50 @@ export default function useStoreUsersAccess() {
       }
 
       fetchedShopName = storeData?.shop_name || 'Store Owner';
-      const isPremiumStore = storeData.premium === true || 
-                           (typeof storeData.premium === 'string' && 
-                            storeData.premium.toLowerCase() === 'true');
-      if (isPremiumStore) {
-        hasPremiumAccess = true;
+      // Fetch the PARENT owner's subscription via RPC (bypasses RLS)
+      let subData = null;
+      const ownerId = storeData?.owner_user_id;
+
+      if (ownerId) {
+        const { data: rpcResult } = await supabase
+          .rpc('get_owner_subscription', { p_owner_id: Number(ownerId) });
+        subData = Array.isArray(rpcResult) && rpcResult.length > 0 ? rpcResult[0] : null;
+      } else {
+        // Fallback: try own subscription
+        const { data: fallback } = await supabase
+          .from('subscriptions')
+          .select('*')
+          .eq('store_id', storeId)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        subData = fallback;
+      }
+
+      setSubscription(subData || null);
+
+      // Determine effective plan from subscription
+      let effectivePlan = PLANS.FREE;
+      if (subData) {
+        if (subData.status === 'active') {
+          effectivePlan = subData.plan_name || PLANS.BUSINESS;
+        } else if (subData.status === 'trialing' && subData.trial_end) {
+          effectivePlan = new Date(subData.trial_end) > new Date()
+            ? (subData.plan_name || PLANS.BUSINESS)
+            : PLANS.FREE;
+        }
+      } else {
+        // Legacy fallback
+        effectivePlan = getEffectivePlan(storeData.plan || PLANS.FREE, storeData.created_at);
+      }
+
+      setUserPlan(effectivePlan);
+      setRegistrationDate(subData || storeData.created_at);
+
+      hasPremiumAccess = effectivePlan === PLANS.PREMIUM || effectivePlan === PLANS.BUSINESS;
+
+      if (hasPremiumAccess) {
+        setIsPremium(true);
       }
 
       // Parse store features
@@ -131,51 +173,39 @@ export default function useStoreUsersAccess() {
         }
       }
 
-      // If not premium yet and user_id is present, check associated stores via store_users
-      if (!hasPremiumAccess && userId) {
-        const { data: userStores, error: userStoresError } = await supabase
-          .from('store_users')
-          .select('store_id')
-          .eq('id', userId);
+      // NOTE: Legacy premium checks via store_users and user_access removed.
+      // Premium access is now derived solely from the subscription table.
 
-        if (!userStoresError && userStores?.length > 0) {
-          const associatedStoreIds = userStores.map((us) => us.store_id);
+      // ─── Auto-inject features from server-side flags ────────
+      if (subData) {
+        const serverFeatures = [
+          { flag: 'has_warehouse', key: 'warehouse' },
+          { flag: 'has_admin_ops', key: 'admin_ops' },
+          { flag: 'has_ai_insights', key: 'ai_insights' },
+          { flag: 'has_financial_dashboard', key: 'financial_dashboard' },
+          { flag: 'has_multi_store', key: 'multi_store' },
+        ];
 
-          // Query premium status for associated stores
-          const { data: premiumStores, error: premiumStoresError } = await supabase
-            .from('stores')
-            .select('id, shop_name, premium')
-            .in('id', associatedStoreIds)
-            .eq('premium', true);
-
-          if (!premiumStoresError && premiumStores?.length > 0) {
-            hasPremiumAccess = true;
-            fetchedShopName = premiumStores[0].shop_name || fetchedShopName;
+        serverFeatures.forEach(({ flag, key }) => {
+          if (subData[flag] === true) {
+            if (!features.includes(key)) features.push(key);
+            if (!userFeatures.includes(key)) userFeatures.push(key);
           }
-        }
-      }
-
-      // If user_access is present, cross-check store_ids for premium
-      if (!hasPremiumAccess && userAccessRaw) {
-        try {
-          const userAccess = JSON.parse(userAccessRaw);
-          const accessStoreIds = userAccess?.store_ids || [];
-
-          if (accessStoreIds.length > 0) {
-            const { data: premiumAccessStores, error: premiumAccessError } = await supabase
-              .from('stores')
-              .select('id, shop_name, premium')
-              .in('id', accessStoreIds)
-              .eq('premium', true);
-
-            if (!premiumAccessError && premiumAccessStores?.length > 0) {
-              hasPremiumAccess = true;
-              fetchedShopName = premiumAccessStores[0].shop_name || fetchedShopName;
-            }
-          }
-        } catch (parseError) {
-          console.error('Error parsing user_access:', parseError.message);
-        }
+        });
+      } else if (effectivePlan === PLANS.BUSINESS) {
+        // Legacy fallback
+        const businessFeatures = ['warehouse', 'admin_ops', 'ai_insights', 'financial_dashboard'];
+        businessFeatures.forEach(f => {
+          if (!features.includes(f)) features.push(f);
+          if (!userFeatures.includes(f)) userFeatures.push(f);
+        });
+      } else if (effectivePlan === PLANS.PREMIUM) {
+        // Legacy fallback
+        const premiumFeatures = ['ai_insights', 'financial_dashboard'];
+        premiumFeatures.forEach(f => {
+          if (!features.includes(f)) features.push(f);
+          if (!userFeatures.includes(f)) userFeatures.push(f);
+        });
       }
 
       // Intersect store and user features
@@ -208,6 +238,9 @@ export default function useStoreUsersAccess() {
     error,
     setError,
     isPremium,
+    userPlan,
+    registrationDate,
+    subscription,
     refreshPermissions: fetchAllowedFeatures,
   };
 }

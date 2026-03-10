@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 export default function useAttendants(ownerId) {
   const [attendants, setAttendants] = useState([]);
   const [stores, setStores] = useState([]);
+  const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -35,7 +36,15 @@ export default function useAttendants(ownerId) {
 
       const storeIds = storeData.map((s) => s.id);
 
-      // 2️⃣ Fetch attendants (NO joins, NO store refs)
+      // 2️⃣ Fetch branches
+      const { data: branchData } = await supabase
+        .from("branches")
+        .select("id, branch_name, store_id")
+        .in("store_id", storeIds);
+
+      setBranches(branchData || []);
+
+      // 3️⃣ Fetch attendants
       const { data: attendantsData, error: attendantsError } = await supabase
         .from("store_users")
         .select(`
@@ -44,18 +53,24 @@ export default function useAttendants(ownerId) {
           phone_number,
           email_address,
           role,
-          store_id
+          store_id,
+          branch_id
         `)
         .in("store_id", storeIds)
         .order("id", { ascending: false });
 
       if (attendantsError) throw attendantsError;
 
-      // 3️⃣ Merge shop_name manually
+      // 4️⃣ Merge shop_name and branch_name manually
+      const branchMap = Object.fromEntries(
+        (branchData || []).map((b) => [b.id, b.branch_name])
+      );
+
       setAttendants(
         (attendantsData || []).map((a) => ({
           ...a,
           shop_name: storeMap[a.store_id] || "N/A",
+          branch_name: branchMap[a.branch_id] || "Main Office",
         }))
       );
 
@@ -76,9 +91,26 @@ export default function useAttendants(ownerId) {
 
   /* ================= CRUD ================= */
 
+  const arrayBufferToHex = (buffer) =>
+    Array.prototype.map
+      .call(new Uint8Array(buffer), (x) => ('00' + x.toString(16)).slice(-2))
+      .join('');
+
+  const hashPassword = async (plainText) => {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(plainText);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    return arrayBufferToHex(hashBuffer);
+  };
+
   const createAttendant = async (attendant) => {
     try {
-      const { shop_name, ...payload } = attendant; // derived field removed
+      const { shop_name, branch_name, ...payload } = attendant;
+
+      if (payload.password) {
+        payload.password = await hashPassword(payload.password);
+      }
+
       const { error } = await supabase
         .from("store_users")
         .insert([payload]);
@@ -93,7 +125,13 @@ export default function useAttendants(ownerId) {
 
   const updateAttendant = async (attendant) => {
     try {
-      const { id, shop_name, ...payload } = attendant; // derived field removed
+      const { id, shop_name, branch_name, password, ...payload } = attendant;
+
+      // Only hash and update password if it's explicitly changed and not empty
+      if (password && password.trim() !== "") {
+        payload.password = await hashPassword(password);
+      }
+
       const { error } = await supabase
         .from("store_users")
         .update(payload)
@@ -125,6 +163,7 @@ export default function useAttendants(ownerId) {
   return {
     attendants,
     stores,
+    branches,
     loading,
     error,
     loadAttendants,

@@ -1,11 +1,12 @@
-import { supabase } from '../../../supabaseClient';
-import React, { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
 import {
   FaChartLine, FaBell, FaBoxOpen, FaLightbulb, FaShieldAlt,
   FaArrowLeft, FaLock, FaTimes, FaCrown, FaSearch, FaChevronRight
 } from "react-icons/fa";
 
-
+import useDashboardAccess from '../Stores/useDashboardAccess';
+import { hasFeature } from '../../../utils/planManager';
 
 import TheftDetection from '../AiInsights/TheftDetection/TheftDetection'
 import SalesTrends from '../AiInsights/Trends/SalesTrends'
@@ -21,6 +22,7 @@ const insightsTools = [
     icon: FaChartLine,
     desc: "Analyze sales trends and forecasts to optimize your store",
     component: <SalesTrends />,
+    featureKey: "AI_INSIGHTS",
     isFreemium: false,
     category: "Insights",
   },
@@ -57,108 +59,33 @@ const insightsTools = [
     icon: FaShieldAlt,
     desc: "Detect/Audit incidents in your store",
     component: <TheftDetection />,
+    featureKey: "AI_INSIGHTS",
     isFreemium: false,
     category: "Insights",
   },
 ];
 
 export default function Insights() {
-  const [shopName, setShopName] = useState('Store Owner');
+  const {
+    shopName,
+    isPremium,
+    userPlan,
+    registrationDate,
+    isLoading,
+    errorMessage,
+    setErrorMessage
+  } = useDashboardAccess();
+
   const [activeTool, setActiveTool] = useState(null);
-  const [isPremium, setIsPremium] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-
-  useEffect(() => {
-    async function checkPremiumAccess() {
-      setIsLoading(true);
-      setErrorMessage('');
-      try {
-        const storeId = localStorage.getItem('store_id');
-        const userId = localStorage.getItem('user_id');
-        const userAccessRaw = localStorage.getItem('user_access');
-        let hasPremiumAccess = false;
-        let fetchedShopName = 'Store Owner';
-
-        if (!storeId) {
-          setIsLoading(false);
-          return;
-        }
-
-        const { data: storeData, error: storeError } = await supabase
-          .from('stores')
-          .select('shop_name, premium')
-          .eq('id', storeId)
-          .single();
-
-        if (!storeError && storeData) {
-          fetchedShopName = storeData.shop_name || fetchedShopName;
-          const isPremiumStore = storeData.premium === true ||
-            (typeof storeData.premium === 'string' && storeData.premium.toLowerCase() === 'true');
-          if (isPremiumStore) hasPremiumAccess = true;
-        }
-
-        if (!hasPremiumAccess && userId) {
-          const { data: userStores } = await supabase
-            .from('store_users')
-            .select('store_id')
-            .eq('id', userId);
-
-          if (userStores?.length > 0) {
-            const associatedStoreIds = userStores.map(us => us.store_id);
-            const { data: premiumStores } = await supabase
-              .from('stores')
-              .select('id, shop_name, premium')
-              .in('id', associatedStoreIds)
-              .eq('premium', true);
-
-            if (premiumStores?.length > 0) {
-              hasPremiumAccess = true;
-              fetchedShopName = premiumStores[0].shop_name || fetchedShopName;
-            }
-          }
-        }
-
-        if (!hasPremiumAccess && userAccessRaw) {
-          try {
-            const userAccess = JSON.parse(userAccessRaw);
-            const accessStoreIds = userAccess?.store_ids || [];
-            if (accessStoreIds.length > 0) {
-              const { data: premiumAccessStores } = await supabase
-                .from('stores')
-                .select('id, shop_name, premium')
-                .in('id', accessStoreIds)
-                .eq('premium', true);
-              if (premiumAccessStores?.length > 0) {
-                hasPremiumAccess = true;
-                fetchedShopName = premiumAccessStores[0].shop_name || fetchedShopName;
-              }
-            }
-          } catch (parseError) {
-            console.error('Error parsing user_access:', parseError.message);
-          }
-        }
-
-        setShopName(fetchedShopName);
-        setIsPremium(hasPremiumAccess);
-        if (!hasPremiumAccess) {
-          setErrorMessage('Some features are available only for premium users. Please upgrade your store’s subscription.');
-        }
-      } catch (error) {
-        console.error('Premium check error:', error.message);
-        setErrorMessage('An unexpected error occurred. Please try again later.');
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    checkPremiumAccess();
-  }, []);
 
   const handleToolClick = (key) => {
     const tool = insightsTools.find(t => t.key === key);
-    if (!tool.isFreemium && !isPremium) {
+
+    const isAccessible = tool.isFreemium ||
+      (tool.featureKey ? hasFeature(tool.featureKey, userPlan, registrationDate) : isPremium);
+
+    if (!isAccessible) {
       setErrorMessage(`Access Denied: ${tool.label} is a premium feature. Please upgrade your subscription.`);
       return;
     }

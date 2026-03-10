@@ -14,7 +14,9 @@ import {
   FaLock
 } from 'react-icons/fa';
 import { Warehouse } from "lucide-react";
-import { supabase } from '../../supabaseClient'; // Ensure this path is correct for your project
+import { supabase } from '../../supabaseClient';
+import useStoreUsersAccess from './StoreUsers/useStoreUsersAccess';
+import { setupRBAC } from '../../utils/planManager';
 
 // Component Imports
 import StoreUsersTour from './StoreUsers/StoreUsersTour';
@@ -32,8 +34,15 @@ const Dashboard = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isTourOpen, setIsTourOpen] = useState(false);
-  
-  // Auth & Role State
+
+  // Permissions & Access Hook
+  const {
+    userPlan,
+    registrationDate,
+    allowedFeatures,
+    isLoading: isLoadingAccess
+  } = useStoreUsersAccess();
+
   const [userRole, setUserRole] = useState(null);
   const [isLoadingRole, setIsLoadingRole] = useState(true);
 
@@ -45,7 +54,7 @@ const Dashboard = () => {
       setIsLoadingRole(true);
       try {
         const storedEmail = localStorage.getItem('user_email'); // Make sure you set this on Login
-        
+
         if (!storedEmail) {
           setUserRole('guest');
           setIsLoadingRole(false);
@@ -101,26 +110,37 @@ const Dashboard = () => {
     }
   };
 
-  // Define authorized roles for Financials
+  // Define authorized roles for Financials (Internal sub-user logical check)
   const financialRoles = ['admin', 'account', 'manager', 'md', 'ceo'];
 
-  // Navigation items - Filtered based on role
-  const navItems = [
-    { name: 'Home', icon: FaHome, aria: 'Home', dataTour: 'home' },
-    { name: 'Fix Scan', icon: FaQrcode, aria: 'Fix Scan', dataTour: 'fix-scan' },
-    { name: 'AI Insights', icon: FaRobot, aria: 'AI Insights', dataTour: 'ai-insights' },
-    { name: 'Admin Ops', icon: FaUserShield, aria: 'Admin Ops', dataTour: 'admin-ops' },
-    { name: 'Warehouse', icon: Warehouse, aria: 'Warehouse', dataTour: 'warehouse' },
-    // Only show Financials in Sidebar if role matches
-    ...(financialRoles.includes(userRole) ? [{ name: 'Financials', icon: FaMoneyBillWave, aria: 'Finances', dataTour: 'finance' }] : []),
-    { name: 'Store Settings', icon: FaBell, aria: 'Settings', dataTour: 'notifications' },
-    { name: 'Colleagues', icon: FaIdBadge, aria: 'Colleagues', dataTour: 'colleagues' },
-    { name: 'Profile', icon: FaUser, aria: 'Profile', dataTour: 'profile' },
+  // All potential navigation items
+  const allNavItems = [
+    { name: 'Home', icon: FaHome, aria: 'Home', dataTour: 'home', feature: 'PUBLIC' },
+    { name: 'Fix Scan', icon: FaQrcode, aria: 'Fix Scan', dataTour: 'fix-scan', feature: 'PUBLIC' },
+    { name: 'AI Insights', icon: FaRobot, aria: 'AI Insights', dataTour: 'ai-insights', feature: 'AI_INSIGHTS' },
+    { name: 'Admin Ops', icon: FaUserShield, aria: 'Admin Ops', dataTour: 'admin-ops', feature: 'ADMIN_OPS' },
+    { name: 'Warehouse', icon: Warehouse, aria: 'Warehouse', dataTour: 'warehouse', feature: 'WAREHOUSE' },
+    { name: 'Financials', icon: FaMoneyBillWave, aria: 'Finances', dataTour: 'finance', feature: 'FINANCIAL_DASHBOARD' },
+    { name: 'Store Settings', icon: FaBell, aria: 'Settings', dataTour: 'notifications', feature: 'PUBLIC' },
+    { name: 'Colleagues', icon: FaIdBadge, aria: 'Colleagues', dataTour: 'colleagues', feature: 'PUBLIC' },
+    { name: 'Profile', icon: FaUser, aria: 'Profile', dataTour: 'profile', feature: 'PUBLIC' },
   ];
 
+  // Apply setupRBAC filtering
+  const navItems = allNavItems.filter(item => {
+    // 1. Basic Public features
+    if (item.feature === 'PUBLIC') return true;
+
+    // 2. Financials has an extra internal role check
+    if (item.name === 'Financials' && !financialRoles.includes(userRole)) return false;
+
+    // 3. Main RBAC check: Plan + User Feature Assignment
+    return setupRBAC(item.feature, userPlan, registrationDate, allowedFeatures);
+  });
+
   const renderContent = () => {
-    // Show loading spinner while verifying role
-    if (isLoadingRole) {
+    // Show loading spinner while verifying role and access
+    if (isLoadingRole || isLoadingAccess) {
       return (
         <div className="flex flex-col items-center justify-center h-64 text-slate-500">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
@@ -132,7 +152,7 @@ const Dashboard = () => {
     switch (activeTab) {
       case 'AI Insights':
         return <div className="w-full bg-white dark:bg-gray-900 rounded-lg shadow p-4"><AIpowerInsights /></div>;
-      
+
       case 'Fix Scan':
         return <div className="w-full bg-white dark:bg-gray-900 rounded-lg shadow p-4"><StoreUsersDashboardFeatures /></div>;
 
@@ -158,13 +178,13 @@ const Dashboard = () => {
 
       case 'Store Settings':
         return <div className="w-full bg-white dark:bg-gray-900 rounded-lg shadow p-4"><AlertDashboard /></div>;
-        
+
       case 'Profile':
         return <div className="w-full bg-white dark:bg-gray-700 rounded-lg shadow p-4"><StoreUserProfile /></div>;
 
       case 'Colleagues':
         return <div className="w-full bg-white dark:bg-gray-700 rounded-lg shadow p-4"><Colleagues /></div>;
-      
+
       default:
         return <div className="w-full bg-white dark:bg-gray-900 rounded-lg shadow p-4 font-bold">Welcome to Sellytics Dashboard</div>;
     }
@@ -174,8 +194,8 @@ const Dashboard = () => {
 
   return (
     <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
-  
-       
+
+
 
       <StoreUsersTour
         isOpen={isTourOpen}
@@ -183,9 +203,8 @@ const Dashboard = () => {
         setActiveTab={setActiveTab}
       />
       <aside
-        className={`fixed md:static top-0 left-0 h-full transition-all duration-300 bg-gray-100 dark:bg-gray-800 z-40 ${
-          sidebarOpen ? 'w-64' : 'w-0 md:w-16'
-        } ${sidebarOpen ? 'block' : 'hidden md:block'}`}
+        className={`fixed md:static top-0 left-0 h-full transition-all duration-300 bg-gray-100 dark:bg-gray-800 z-40 ${sidebarOpen ? 'w-64' : 'w-0 md:w-16'
+          } ${sidebarOpen ? 'block' : 'hidden md:block'}`}
       >
         <div className="p-4 md:p-4">
           <div className="flex items-center justify-between mb-4">
@@ -207,9 +226,8 @@ const Dashboard = () => {
                   key={item.name}
                   data-tour={item.dataTour}
                   onClick={() => handleNavClick(item.name)}
-                  className={`flex items-center p-2 rounded cursor-pointer transition hover:bg-indigo-300 dark:hover:bg-indigo-600 ${
-                    activeTab === item.name ? 'bg-indigo-200 dark:bg-indigo-600' : ''
-                  }`}
+                  className={`flex items-center p-2 rounded cursor-pointer transition hover:bg-indigo-300 dark:hover:bg-indigo-600 ${activeTab === item.name ? 'bg-indigo-200 dark:bg-indigo-600' : ''
+                    }`}
                   aria-label={item.aria}
                 >
                   <item.icon
@@ -238,9 +256,8 @@ const Dashboard = () => {
             />
             <div className="w-11 h-6 bg-indigo-800 dark:bg-gray-600 rounded-full transition-colors duration-300">
               <span
-                className={`absolute left-1 top-1 bg-white dark:bg-indigo-200 w-4 h-4 rounded-full transition-transform duration-300 ${
-                  darkMode ? 'translate-x-5' : ''
-                }`}
+                className={`absolute left-1 top-1 bg-white dark:bg-indigo-200 w-4 h-4 rounded-full transition-transform duration-300 ${darkMode ? 'translate-x-5' : ''
+                  }`}
               ></span>
             </div>
           </label>
@@ -249,18 +266,16 @@ const Dashboard = () => {
 
       <button
         onClick={toggleSidebar}
-        className={`fixed top-4 md:top-4 transition-all duration-300 z-50 rounded-full p-2 bg-indigo-600 text-white shadow-lg hover:bg-indigo-700 md:block hidden ${
-          sidebarOpen ? 'left-64' : 'left-4'
-        }`}
+        className={`fixed top-4 md:top-4 transition-all duration-300 z-50 rounded-full p-2 bg-indigo-600 text-white shadow-lg hover:bg-indigo-700 md:block hidden ${sidebarOpen ? 'left-64' : 'left-4'
+          }`}
         aria-label={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
       >
         {sidebarOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
       </button>
 
       <div
-        className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${
-          sidebarOpen ? 'md:ml-64' : 'md:ml-0'
-        }`}
+        className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${sidebarOpen ? 'md:ml-64' : 'md:ml-0'
+          }`}
       >
         <header className="flex md:hidden items-center justify-between p-4 bg-white dark:bg-gray-800">
           <button

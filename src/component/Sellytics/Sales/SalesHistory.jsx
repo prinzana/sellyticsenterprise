@@ -25,7 +25,9 @@ export default function SalesHistory({
   search,
   setSearch,
   dateFilter = 'all',
-  onDateFilterChange
+  onDateFilterChange,
+  currentPlan,
+  onLock
 }) {
   const { formatPrice } = useCurrency();
   const [currentPage, setCurrentPage] = useState(1);
@@ -61,10 +63,12 @@ export default function SalesHistory({
     }
   }, [searchFiltered, dateFilter]);
 
-  // Pagination
   const totalPages = Math.ceil(filteredByDate.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedSales = filteredByDate.slice(startIndex, startIndex + itemsPerPage);
+
+  const isRestrictedByPlan = currentPlan === 'FREE';
+  const PLAN_LIMIT = 10;
 
   // Totals for filtered period
   const filteredTotal = useMemo(() => {
@@ -156,14 +160,27 @@ export default function SalesHistory({
       {/* Sales List */}
       <div className="w-full divide-y divide-slate-100 dark:divide-slate-800">
         <AnimatePresence>
-          {paginatedSales.map((sale) => (
+          {paginatedSales.map((sale, idx) => (
             <motion.div
               key={sale.id}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="px-3 sm:px-4 md:px-5 py-3 sm:py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+              className={`px-3 sm:px-4 md:px-5 py-3 sm:py-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors relative ${isRestrictedByPlan && startIndex + idx >= PLAN_LIMIT ? 'blur-[4.5px] pointer-events-none' : ''}`}
             >
+              {isRestrictedByPlan && startIndex + idx === PLAN_LIMIT && (
+                <div
+                  className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-white/40 dark:bg-slate-900/40 backdrop-blur-[2px] cursor-pointer pointer-events-auto group"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onLock('feature_locked');
+                  }}
+                >
+                  <div className="bg-indigo-600 text-white px-4 py-2 rounded-full text-xs font-bold shadow-lg transform group-hover:scale-105 transition-transform">
+                    UPGRADE TO SEE MORE SALES
+                  </div>
+                </div>
+              )}
               <div className="flex items-center justify-between gap-2 sm:gap-3">
                 {/* Left: Product Info */}
                 <div

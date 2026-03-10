@@ -10,14 +10,16 @@ import { jsPDF } from 'jspdf';
 import toast from 'react-hot-toast';
 import ReceiptPreview from './ReceiptPreview';
 
-export default function ReceiptQRModal({ 
-  isOpen, 
-  onClose, 
-  receipt, 
-  saleGroup, 
-  store, 
+export default function ReceiptQRModal({
+  isOpen,
+  onClose,
+  receipt,
+  saleGroup,
+  store,
   productGroups,
-  styles 
+  styles,
+  currentPlan,
+  onLock
 }) {
   const printRef = useRef();
 
@@ -25,17 +27,16 @@ export default function ReceiptQRModal({
 
   const generatePDF = async () => {
     const element = printRef.current;
-    if (!element) {
-      toast.error('Receipt content not found');
+    if (currentPlan === 'FREE') {
+      onLock('feature_locked');
       return;
     }
-
     const toastId = toast.loading('Generating PDF...');
 
     try {
       const canvas = await html2canvas(element, { scale: 3, useCORS: true });
       const imgData = canvas.toDataURL('image/jpeg', 0.9);
-      
+
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
@@ -47,7 +48,7 @@ export default function ReceiptQRModal({
 
       pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
       pdf.save(`receipt-${receipt.receipt_id}.pdf`);
-      
+
       toast.success('PDF downloaded', { id: toastId });
     } catch (error) {
       console.error('PDF error:', error);
@@ -60,11 +61,19 @@ export default function ReceiptQRModal({
   };
 
   const copyLink = () => {
+    if (currentPlan === 'FREE') {
+      onLock('feature_locked');
+      return;
+    }
     navigator.clipboard.writeText(qrCodeUrl);
     toast.success('Link copied');
   };
 
   const shareLink = async () => {
+    if (currentPlan === 'FREE') {
+      onLock('feature_locked');
+      return;
+    }
     if (navigator.share) {
       try {
         await navigator.share({
@@ -124,14 +133,14 @@ export default function ReceiptQRModal({
                 <div className="flex items-center justify-center gap-2">
                   <button
                     onClick={copyLink}
-                    className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl text-sm font-medium transition-colors shadow-sm"
+                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors shadow-sm ${currentPlan === 'FREE' ? 'bg-slate-50 text-slate-400 cursor-not-allowed opacity-75' : 'bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
                   >
                     <Copy className="w-4 h-4" />
                     Copy Link
                   </button>
                   <button
                     onClick={shareLink}
-                    className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl text-sm font-medium transition-colors shadow-sm"
+                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-colors shadow-sm ${currentPlan === 'FREE' ? 'bg-slate-50 text-slate-400 cursor-not-allowed opacity-75' : 'bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
                   >
                     <Share2 className="w-4 h-4" />
                     Share
@@ -169,10 +178,16 @@ export default function ReceiptQRModal({
             </button>
             <button
               onClick={generatePDF}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium transition-colors shadow-lg shadow-indigo-500/30"
+              className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium transition-colors ${currentPlan === 'FREE' ? 'bg-slate-200 text-slate-500' : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/30'}`}
             >
               <Download className="w-5 h-5" />
               Download
+              {currentPlan === 'FREE' && (
+                <svg className="w-3 h-3 ml-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+              )}
             </button>
           </div>
         </motion.div>

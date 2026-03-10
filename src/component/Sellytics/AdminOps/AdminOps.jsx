@@ -2,11 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../../supabaseClient';
 import {
   FaClock, FaCalendarAlt, FaArrowLeft, FaLock,
-  FaTimes, FaCrown, FaSearch, FaChevronRight
+  FaTimes, FaCrown, FaSearch, FaChevronRight, FaUsers
 } from 'react-icons/fa';
 import Clocking from './TmeSheet/Clocking';
 //import AdminTasks from './AdminTasks';
 import ScheduleManagement from './ScheduleManagement/ScheduleManagement';
+import TeamManagement from './TeamManagement';
+import { hasFeature } from '../../../utils/planManager';
+import useDashboardAccess from '../Stores/useDashboardAccess';
 
 const opsTools = [
   {
@@ -27,10 +30,21 @@ const opsTools = [
     component: <ScheduleManagement />,
     isFreemium: false,
     category: 'Operations',
+    featureKey: 'ADMIN_OPS'
+  },
+  {
+    key: 'team',
+    label: 'Team Management',
+    icon: FaUsers,
+    desc: 'Add, manage, and assign team members to stores.',
+    component: <TeamManagement />,
+    isFreemium: true,
+    category: 'People',
   },
 ];
 
 export default function AdminOps() {
+  const { userPlan, registrationDate } = useDashboardAccess();
   const [shopName, setShopName] = useState('Store Admin');
   const [activeTool, setActiveTool] = useState(null);
   const [isAuthorized, setIsAuthorized] = useState(false);
@@ -136,8 +150,12 @@ export default function AdminOps() {
 
   const handleToolClick = (key) => {
     const tool = opsTools.find(t => t.key === key);
-    if (!tool.isFreemium && !isAuthorized) {
-      setErrorMessage(`Access Denied: ${tool.label} is a premium feature. Please upgrade your subscription.`);
+
+    // Check plan access using planManager logic
+    const isAccessible = tool.isFreemium || (tool.featureKey ? hasFeature(tool.featureKey, userPlan, registrationDate) : true);
+
+    if (!isAccessible) {
+      setErrorMessage(`Access Denied: ${tool.label} is a premium feature. Please upgrade to the ${tool.featureKey === 'MULTI_STORE' ? 'Business' : 'Premium'} Plan.`);
       return;
     }
     setActiveTool(key);
@@ -263,8 +281,8 @@ export default function AdminOps() {
                   key={tool.key}
                   onClick={() => isAccessible && handleToolClick(tool.key)}
                   className={`group relative bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-3 transition-all duration-200 ${isAccessible
-                      ? 'cursor-pointer hover:shadow-md hover:shadow-indigo-500/10 hover:-translate-y-0.5 hover:border-indigo-400 dark:hover:border-indigo-600'
-                      : 'cursor-not-allowed opacity-50'
+                    ? 'cursor-pointer hover:shadow-md hover:shadow-indigo-500/10 hover:-translate-y-0.5 hover:border-indigo-400 dark:hover:border-indigo-600'
+                    : 'cursor-not-allowed opacity-50'
                     }`}
                 >
                   {!tool.isFreemium && (

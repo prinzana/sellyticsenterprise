@@ -21,6 +21,7 @@ import MultiSalesDashboard from './MultiSales/MultiSalesDashboard';
 import InventoryDashboard from './MultiInventory/InventoryDashboard';
 import DebtorsDashboard from './MultiDebt/DebtorsDashboard';
 import PricingFeatures from '../../Payments/PricingFeatures';
+import BranchManagement from '../AdminOps/BranchManagement';
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('My Stores');
@@ -54,7 +55,7 @@ const Dashboard = () => {
       case 'My Stores':
         return (
           <div className="w-full bg-white dark:bg-gray-900 p-4">
-            <MyStores />
+            <MyStores setActiveTab={setActiveTab} />
           </div>
         );
       case 'Multi Sales':
@@ -75,8 +76,8 @@ const Dashboard = () => {
             <DebtorsDashboard />
           </div>
         );
-     
-      
+
+
       case 'Upgrade':
         return (
           <div className="w-full bg-white dark:bg-gray-900 p-4">
@@ -84,11 +85,11 @@ const Dashboard = () => {
           </div>
         );
 
-     
+
       case 'Employees':
         return (
           <div className="w-full bg-white dark:bg-gray-900 p-4">
-            <MultiEmployeesDb />
+            <MultiEmployeesDb setActiveTab={setActiveTab} />
           </div>
         );
       case 'Profile':
@@ -97,7 +98,13 @@ const Dashboard = () => {
             <StoreOwnerDashboard />
           </div>
         );
-   
+      case 'Branches':
+        return (
+          <div className="w-full bg-white dark:bg-gray-900 p-4">
+            <BranchManagement />
+          </div>
+        );
+
       default:
         return (
           <div className="w-full bg-white dark:bg-gray-900 p-4">
@@ -124,7 +131,7 @@ const Dashboard = () => {
 
   return (
     <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
-     
+
       {/* Onboarding Tour */}
       <OnboardingTour
         isOpen={isTourOpen}
@@ -133,9 +140,8 @@ const Dashboard = () => {
       />
       {/* Sidebar */}
       <aside
-        className={`fixed md:static top-0 left-0 h-full transition-all duration-300 bg-gray-100 dark:bg-gray-800 z-40 ${
-          sidebarOpen ? 'w-64' : 'w-0 md:w-16'
-        } ${sidebarOpen ? 'block' : 'hidden md:block'}`}
+        className={`fixed md:static top-0 left-0 h-full transition-all duration-300 bg-gray-100 dark:bg-gray-800 z-40 ${sidebarOpen ? 'w-64' : 'w-0 md:w-16'
+          } ${sidebarOpen ? 'block' : 'hidden md:block'}`}
       >
         <div className="p-4 md:p-4">
           <div className="flex items-center justify-between mb-4">
@@ -159,17 +165,17 @@ const Dashboard = () => {
                 { name: 'Multi Sales', icon: FaQrcode, aria: 'Sales Dashboard: View and analyze sales across stores' },
                 { name: 'Multi Inventory', icon: FaBarcode, aria: 'Inventory Dashboard: Manage inventory across all stores' },
                 { name: 'Multi Debts', icon: FaMoneyBillWave, aria: 'Debtors Dashboard: Track and manage debts' },
-              
+
                 { name: 'Employees', icon: FaIdBadge, aria: 'Employees: Manage store employees' },
+                { name: 'Branches', icon: FaStore, aria: 'Branches: Manage physical locations' },
                 { name: 'Profile', icon: FaUser, aria: 'Profile: View and edit your profile' },
               ].map((item) => (
                 <li
                   key={item.name}
                   data-tour={item.name.toLowerCase().replace(' ', '-')}
                   onClick={() => handleNavClick(item.name)}
-                  className={`flex items-center p-2 rounded cursor-pointer hover:bg-indigo-200 dark:hover:bg-indigo-600 transition ${
-                    activeTab === item.name ? 'bg-indigo-200 dark:bg-indigo-600' : ''
-                  }`}
+                  className={`flex items-center p-2 rounded cursor-pointer hover:bg-indigo-200 dark:hover:bg-indigo-600 transition ${activeTab === item.name ? 'bg-indigo-200 dark:bg-indigo-600' : ''
+                    }`}
                   aria-label={item.aria}
                 >
                   <item.icon className={`text-indigo-800 dark:text-indigo-200 ${sidebarOpen ? 'mr-3' : 'mx-auto'}`} />
@@ -198,9 +204,8 @@ const Dashboard = () => {
             />
             <div className="w-11 h-6 bg-indigo-800 dark:bg-gray-600 rounded-full transition-colors duration-300">
               <span
-                className={`absolute left-1 top-1 bg-white dark:bg-indigo-200 w-4 h-4 rounded-full transition-transform duration-300 ${
-                  darkMode ? 'translate-x-5' : ''
-                }`}
+                className={`absolute left-1 top-1 bg-white dark:bg-indigo-200 w-4 h-4 rounded-full transition-transform duration-300 ${darkMode ? 'translate-x-5' : ''
+                  }`}
               ></span>
             </div>
           </label>
@@ -209,9 +214,8 @@ const Dashboard = () => {
       {/* Floating Toggle Button (Desktop Only) */}
       <button
         onClick={toggleSidebar}
-        className={`fixed top-4 md:top-4 transition-all duration-300 z-50 rounded-full p-2 bg-indigo-600 text-white shadow-lg hover:bg-indigo-700 md:block hidden ${
-          sidebarOpen ? 'left-64' : 'left-4'
-        }`}
+        className={`fixed top-4 md:top-4 transition-all duration-300 z-50 rounded-full p-2 bg-indigo-600 text-white shadow-lg hover:bg-indigo-700 md:block hidden ${sidebarOpen ? 'left-64' : 'left-4'
+          }`}
         aria-label={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
       >
         {sidebarOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
@@ -219,9 +223,8 @@ const Dashboard = () => {
 
       {/* Main Content */}
       <div
-        className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${
-          sidebarOpen ? 'md:ml-64' : 'md:ml-16'
-        }`}
+        className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${sidebarOpen ? 'md:ml-64' : 'md:ml-16'
+          }`}
       >
         {/* Mobile Header */}
         <header className="flex md:hidden items-center justify-between p-4 bg-white dark:bg-gray-800">

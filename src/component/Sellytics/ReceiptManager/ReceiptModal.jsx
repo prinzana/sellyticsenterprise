@@ -17,7 +17,9 @@ export default function ReceiptModal({
   styles,
   onUpdate,
   onDelete,
-  canDelete
+  canDelete,
+  currentPlan,
+  onLock
 }) {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showQR, setShowQR] = useState(false);
@@ -29,27 +31,26 @@ export default function ReceiptModal({
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(receiptUrl)}`;
 
   const handleDownload = async () => {
+    if (currentPlan === 'FREE') {
+      onLock('feature_locked');
+      return;
+    }
     const element = printRef.current;
     if (!element) return;
 
     const toastId = toast.loading('Generating PDF...');
-
     try {
       const canvas = await html2canvas(element, { scale: 3, useCORS: true });
       const imgData = canvas.toDataURL('image/jpeg', 0.9);
-
       const pdf = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
         format: [80, 297]
       });
-
       const imgWidth = 80;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
       pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
       pdf.save(`receipt-${receipt.receipt_id}.pdf`);
-
       toast.success('Receipt downloaded!', { id: toastId });
     } catch (error) {
       console.error('Download error:', error);
@@ -62,6 +63,10 @@ export default function ReceiptModal({
   };
 
   const handleShare = async () => {
+    if (currentPlan === 'FREE') {
+      onLock('feature_locked');
+      return;
+    }
     if (navigator.share) {
       try {
         await navigator.share({
@@ -71,10 +76,7 @@ export default function ReceiptModal({
         });
         toast.success('Shared successfully!');
       } catch (err) {
-        if (err.name !== 'AbortError') {
-          console.error('Share error:', err);
-          copyToClipboard();
-        }
+        if (err.name !== 'AbortError') copyToClipboard();
       }
     } else {
       copyToClipboard();
@@ -82,11 +84,19 @@ export default function ReceiptModal({
   };
 
   const copyToClipboard = () => {
+    if (currentPlan === 'FREE') {
+      onLock('feature_locked');
+      return;
+    }
     navigator.clipboard.writeText(receiptUrl);
     toast.success('Receipt link copied to clipboard!');
   };
 
   const handleDelete = async () => {
+    if (currentPlan === 'FREE') {
+      onLock('feature_locked');
+      return;
+    }
     if (await onDelete(saleGroup.id)) {
       onClose();
     }
@@ -127,7 +137,6 @@ export default function ReceiptModal({
 
           {/* Content */}
           <div className="flex-1 overflow-y-auto p-6">
-            {/* QR Code Section */}
             <AnimatePresence>
               {showQR && (
                 <motion.div
@@ -146,15 +155,20 @@ export default function ReceiptModal({
                   />
                   <button
                     onClick={copyToClipboard}
-                    className="text-sm text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 font-semibold"
+                    className="text-sm text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 font-semibold flex items-center gap-1"
                   >
                     Copy link instead
+                    {currentPlan === 'FREE' && (
+                      <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                      </svg>
+                    )}
                   </button>
                 </motion.div>
               )}
             </AnimatePresence>
 
-            {/* Receipt Preview */}
             <div className="bg-slate-50 dark:bg-slate-900 p-6 rounded-2xl shadow-inner printable-area">
               <ReceiptPreview
                 ref={printRef}
@@ -179,10 +193,23 @@ export default function ReceiptModal({
               </button>
 
               <button
-                onClick={() => setShowEditModal(true)}
-                className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-600 font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition shadow-sm"
+                onClick={() => {
+                  if (currentPlan === 'FREE') onLock('feature_locked');
+                  else setShowEditModal(true);
+                }}
+                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 font-semibold transition shadow-sm ${currentPlan === 'FREE' ? 'bg-slate-100 border-slate-200 text-slate-400' : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
               >
-                <Edit className="w-4 h-4" />
+                <div className="relative">
+                  <Edit className="w-4 h-4" />
+                  {currentPlan === 'FREE' && (
+                    <div className="absolute -top-1 -right-1 bg-slate-400 rounded-full p-0.5">
+                      <svg className="w-2 h-2 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
                 <span className="hidden sm:inline">Edit</span>
               </button>
 
@@ -196,9 +223,19 @@ export default function ReceiptModal({
 
               <button
                 onClick={handleShare}
-                className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-600 font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition shadow-sm"
+                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 font-semibold transition shadow-sm ${currentPlan === 'FREE' ? 'bg-slate-100 border-slate-200 text-slate-400' : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
               >
-                <Share2 className="w-4 h-4" />
+                <div className="relative">
+                  <Share2 className="w-4 h-4" />
+                  {currentPlan === 'FREE' && (
+                    <div className="absolute -top-1 -right-1 bg-slate-400 rounded-full p-0.5">
+                      <svg className="w-2 h-2 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
                 <span className="hidden sm:inline">Share</span>
               </button>
             </div>
@@ -206,26 +243,37 @@ export default function ReceiptModal({
             <div className="flex gap-3">
               <button
                 onClick={handleDownload}
-                className="flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-indigo-900 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold transition shadow-lg shadow-indigo-500/30"
+                className={`flex-1 flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-semibold transition shadow-lg ${currentPlan === 'FREE' ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-indigo-900 hover:bg-indigo-700 text-white shadow-indigo-500/30'}`}
               >
                 <Download className="w-5 h-5" />
                 Download PDF
+                {currentPlan === 'FREE' && (
+                  <svg className="w-3 h-3 ml-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                  </svg>
+                )}
               </button>
 
               {canDelete && (
                 <button
                   onClick={handleDelete}
-                  className="px-6 py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-semibold transition shadow-lg shadow-red-500/30 flex items-center gap-2"
+                  className={`px-6 py-3 rounded-xl font-semibold transition shadow-lg flex items-center gap-2 ${currentPlan === 'FREE' ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700 text-white shadow-red-500/30'}`}
                 >
                   <Trash2 className="w-5 h-5" />
                   <span className="hidden sm:inline">Delete</span>
+                  {currentPlan === 'FREE' && (
+                    <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
+                  )}
                 </button>
               )}
             </div>
           </div>
         </motion.div>
 
-        {/* Edit Modal */}
         {showEditModal && (
           <ReceiptEditModal
             isOpen={showEditModal}
@@ -236,7 +284,6 @@ export default function ReceiptModal({
         )}
       </div>
 
-      {/* Print Styles */}
       <style>{`
         @media print {
           body * { visibility: hidden; }
@@ -249,10 +296,7 @@ export default function ReceiptModal({
             padding: 0 !important;
             background: white !important;
           }
-          @page {
-            margin: 0;
-            size: 80mm auto;
-          }
+          @page { margin: 0; size: 80mm auto; }
         }
       `}</style>
     </AnimatePresence>

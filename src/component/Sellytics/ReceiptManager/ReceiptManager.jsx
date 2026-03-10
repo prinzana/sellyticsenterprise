@@ -7,22 +7,26 @@ import ReceiptModal from './ReceiptModal';
 import ReceiptCustomizer from './ReceiptCustomizer';
 import BulkDeleteConfirm from './BulkDeleteConfirm';
 import FilterPanel from './FilterPanel';
-//import { getUserPermission } from '../../../utils/accessControl';
+import { supabase } from '../../../supabaseClient';
+import { PLANS } from '../../../utils/planManager';
+import UpgradePlanModal from '../Shared/UpgradePlanModal';
 
 export default function ReceiptManager() {
   const [storeId, setStoreId] = useState(null);
   const [userEmail, setUserEmail] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+  const [currentPlan, setCurrentPlan] = useState(PLANS.FREE);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeReason, setUpgradeReason] = useState('feature_locked');
 
-  // Destructure canDelete directly from the hook (now reliable)
   const {
     store,
     filteredSaleGroups,
     selectedSaleGroup,
     selectedReceipt,
     loading,
-    canDelete,                    // ← This is now correct and used everywhere
+    canDelete,
     selectedIds,
     setSelectedIds,
     searchTerm,
@@ -43,15 +47,37 @@ export default function ReceiptManager() {
     const initAuth = async () => {
       const storedStoreId = localStorage.getItem('store_id');
       const storedUserEmail = localStorage.getItem('user_email');
-      
-      console.log('🔐 Auth init:', { storedStoreId, storedUserEmail });
-      
       setStoreId(storedStoreId);
       setUserEmail(storedUserEmail);
     };
-
     initAuth();
   }, []);
+
+  // Fetch Plan
+  useEffect(() => {
+    const fetchPlan = async () => {
+      const ownerId = localStorage.getItem('owner_id');
+      if (ownerId) {
+        try {
+          const { data, error } = await supabase.rpc('get_owner_subscription', { p_owner_id: Number(ownerId) });
+          if (!error && data?.[0]) {
+            const sub = data[0];
+            if (sub.status === 'active' || (sub.status === 'trialing' && sub.trial_end && new Date(sub.trial_end) > new Date())) {
+              setCurrentPlan(sub.plan_name || PLANS.BUSINESS);
+            }
+          }
+        } catch (err) {
+          console.error('Plan fetch error:', err);
+        }
+      }
+    };
+    fetchPlan();
+  }, [storeId]);
+
+  const handleApplyLock = (reason = 'feature_locked') => {
+    setUpgradeReason(reason);
+    setShowUpgradeModal(true);
+  };
 
   const handleToggleSelect = (id) => {
     setSelectedIds(prev =>
@@ -62,7 +88,6 @@ export default function ReceiptManager() {
   const handleToggleSelectAll = (groups) => {
     const allIds = groups.map(g => g.id);
     const allSelected = allIds.every(id => selectedIds.includes(id));
-    
     if (allSelected) {
       setSelectedIds(prev => prev.filter(id => !allIds.includes(id)));
     } else {
@@ -90,8 +115,6 @@ export default function ReceiptManager() {
 
   return (
     <>
-    
-      
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-0 md:p-8">
         <div className="max-w-7xl mx-auto space-y-6">
           {/* Header */}
@@ -109,11 +132,20 @@ export default function ReceiptManager() {
               <div className="flex items-center gap-3">
                 {selectedIds.length > 0 && canDelete && (
                   <button
-                    onClick={() => setShowBulkDeleteModal(true)}
+                    onClick={() => {
+                      if (currentPlan === PLANS.FREE) handleApplyLock('feature_locked');
+                      else setShowBulkDeleteModal(true);
+                    }}
                     className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white font-semibold transition shadow-lg shadow-red-500/30"
                   >
                     <Trash2 className="w-5 h-5" />
                     Delete {selectedIds.length}
+                    {currentPlan === PLANS.FREE && (
+                      <svg className="w-3 h-3 ml-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                      </svg>
+                    )}
                   </button>
                 )}
               </div>
@@ -132,21 +164,20 @@ export default function ReceiptManager() {
             </div>
           </div>
 
-          {/* Filter Panel */}
           <FilterPanel
             filters={filters}
             onFilterChange={(key, value) => setFilters(prev => ({ ...prev, [key]: value }))}
             onClearFilters={() => setFilters({ paymentMethod: 'all', dateRange: 'all' })}
           />
 
-          {/* Receipt Customizer */}
           <ReceiptCustomizer
             styles={styles}
             updateStyle={updateStyle}
             resetStyles={resetStyles}
+            currentPlan={currentPlan}
+            onLock={handleApplyLock}
           />
 
-          {/* Sale Groups List */}
           {filteredSaleGroups.length > 0 ? (
             <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-lg p-6 border-2 border-slate-200 dark:border-slate-700">
               <div className="flex items-center gap-3 mb-6">
@@ -177,7 +208,7 @@ export default function ReceiptManager() {
               />
             </div>
           ) : (
-            <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-lg p-0 text-center border-2 border-slate-200 dark:border-slate-700">
+            <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-lg p-12 text-center border-2 border-slate-200 dark:border-slate-700">
               <FileText className="w-20 h-20 mx-auto mb-4 text-slate-300 dark:text-slate-600" />
               <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
                 No Sales Found
@@ -190,7 +221,6 @@ export default function ReceiptManager() {
         </div>
       </div>
 
-      {/* Receipt Modal */}
       <ReceiptModal
         isOpen={!!selectedReceipt}
         onClose={closeReceiptModal}
@@ -202,14 +232,22 @@ export default function ReceiptManager() {
         onUpdate={updateReceipt}
         onDelete={deleteSaleGroup}
         canDelete={canDelete}
+        currentPlan={currentPlan}
+        onLock={handleApplyLock}
       />
 
-      {/* Bulk Delete Confirmation */}
       <BulkDeleteConfirm
         isOpen={showBulkDeleteModal}
         onClose={() => setShowBulkDeleteModal(false)}
         onConfirm={handleBulkDelete}
         count={selectedIds.length}
+      />
+
+      <UpgradePlanModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        currentPlan={currentPlan}
+        reason={upgradeReason}
       />
     </>
   );

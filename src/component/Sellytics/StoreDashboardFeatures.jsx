@@ -6,11 +6,14 @@ import useDashboardAccess from './Stores/useDashboardAccess';
 import DashboardAccess from './DBAscess/DashboardAccess';
 import DashboardHeader from './Stores/DashboardHeader';
 import DashboardToolsGrid from './Stores/DashboardToolsGrid';
+import { hasFeature } from '../../utils/planManager';
 
 export default function StoreDashboardFeatures() {
   const {
     shopName,
     allowedFeatures,
+    userPlan,
+    registrationDate,
     isPremium,
     isLoading,
     errorMessage,
@@ -24,6 +27,16 @@ export default function StoreDashboardFeatures() {
 
   const categories = ['All', ...new Set(tools.map((t) => t.category))];
 
+  // Feature mapping for tools to permission keys
+  const toolToFeatureMap = {
+    'stock_transfer': 'STOCK_TRANSFER',
+    'customers': 'CUSTOMER_MANAGER',
+    'debts': 'DEBTORS_TRACKER',
+    'unpaid_supplies': 'FINANCIAL_DASHBOARD',
+    'returns': 'FINANCIAL_DASHBOARD',
+    'suppliers': 'FINANCIAL_DASHBOARD',
+  };
+
   const filteredTools = tools.filter((tool) => {
     const matchesSearch =
       tool.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -34,13 +47,22 @@ export default function StoreDashboardFeatures() {
 
   const handleToolClick = (key) => {
     const tool = tools.find((t) => t.key === key);
-    if (!allowedFeatures.includes(key)) {
+
+    // 1. Check if allowed in DB (manual override)
+    const isAllowedInDB = allowedFeatures.includes(key);
+
+    // 2. Check if allowed by Plan
+    const featureKey = toolToFeatureMap[key];
+    const isAllowedByPlan = featureKey ? hasFeature(featureKey, userPlan, registrationDate) : true;
+
+    if (!isAllowedInDB && !isAllowedByPlan) {
       setErrorMessage(
-        `Access Denied: ${tool.label} is not enabled for your store. Contact your admin to unlock this feature.`
+        `Access Denied: ${tool.label} is not enabled for your current plan. Please upgrade to unlock.`
       );
       return;
     }
-    if (!tool.isFreemium && !isPremium) {
+
+    if (!tool.isFreemium && !isPremium && !isAllowedByPlan) {
       setErrorMessage(
         `Access Denied: ${tool.label} is a premium feature. Please upgrade your subscription.`
       );

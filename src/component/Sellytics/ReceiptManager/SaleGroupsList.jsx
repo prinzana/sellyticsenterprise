@@ -20,7 +20,9 @@ export default function SaleGroupsList({
   onToggleSelectAll,
   currentPage,
   onPageChange,
-  itemsPerPage = 20
+  itemsPerPage = 20,
+  currentPlan,
+  onLock
 }) {
   const { formatPrice } = useCurrency();
 
@@ -75,10 +77,23 @@ export default function SaleGroupsList({
 
           {canDelete && paginatedGroups.length > 0 && (
             <button
-              onClick={() => onToggleSelectAll(paginatedGroups)}
+              onClick={() => {
+                if (currentPlan === 'FREE') onLock('feature_locked');
+                else onToggleSelectAll(paginatedGroups);
+              }}
               className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl transition-all shadow-sm font-medium text-sm"
             >
-              {allSelected ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
+              <div className="relative">
+                {allSelected ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4" />}
+                {currentPlan === 'FREE' && (
+                  <div className="absolute -top-1 -right-1">
+                    <svg className="w-2 h-2 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
+                  </div>
+                )}
+              </div>
               {allSelected ? 'Deselect All' : 'Select All'}
             </button>
           )}
@@ -122,13 +137,26 @@ export default function SaleGroupsList({
                 {canDelete && (
                   <th className="text-left px-3 sm:px-4 py-4 w-12">
                     <button
-                      onClick={() => onToggleSelectAll(paginatedGroups)}
+                      onClick={() => {
+                        if (currentPlan === 'FREE') onLock('feature_locked');
+                        else onToggleSelectAll(paginatedGroups);
+                      }}
                       className="hover:bg-slate-100 dark:hover:bg-slate-800 p-1 rounded transition-colors"
                     >
-                      {allSelected ?
-                        <CheckSquare className="w-5 h-5 text-indigo-600" /> :
-                        <Square className="w-5 h-5 text-slate-400" />
-                      }
+                      <div className="relative">
+                        {allSelected ?
+                          <CheckSquare className="w-5 h-5 text-indigo-600" /> :
+                          <Square className="w-5 h-5 text-slate-400" />
+                        }
+                        {currentPlan === 'FREE' && (
+                          <div className="absolute -top-1 -right-1">
+                            <svg className="w-2.5 h-2.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4">
+                              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
                     </button>
                   </th>
                 )}
@@ -152,10 +180,10 @@ export default function SaleGroupsList({
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: idx * 0.02 }}
                       className={`cursor-pointer transition-all ${selectedGroup?.id === group.id
-                          ? 'bg-indigo-50 dark:bg-indigo-900/20'
-                          : isSelected
-                            ? 'bg-blue-50 dark:bg-blue-900/10'
-                            : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                        ? 'bg-indigo-50 dark:bg-indigo-900/20'
+                        : isSelected
+                          ? 'bg-blue-50 dark:bg-blue-900/10'
+                          : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'
                         }`}
                       onClick={(e) => {
                         if (!e.target.closest('button')) {
@@ -168,14 +196,25 @@ export default function SaleGroupsList({
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              onToggleSelect(group.id);
+                              if (currentPlan === 'FREE') onLock('feature_locked');
+                              else onToggleSelect(group.id);
                             }}
                             className="hover:bg-slate-100 dark:hover:bg-slate-700 p-1 rounded transition-colors"
                           >
-                            {isSelected ?
-                              <CheckSquare className="w-5 h-5 text-indigo-600" /> :
-                              <Square className="w-5 h-5 text-slate-400" />
-                            }
+                            <div className="relative">
+                              {isSelected ?
+                                <CheckSquare className="w-5 h-5 text-indigo-600" /> :
+                                <Square className="w-5 h-5 text-slate-400" />
+                              }
+                              {currentPlan === 'FREE' && (
+                                <div className="absolute -top-1 -right-1">
+                                  <svg className="w-2.5 h-2.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                                  </svg>
+                                </div>
+                              )}
+                            </div>
                           </button>
                         </td>
                       )}
@@ -208,9 +247,10 @@ export default function SaleGroupsList({
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              onToggleSelect(group.id);
+                              if (currentPlan === 'FREE') onLock('feature_locked');
+                              else onToggleSelect(group.id);
                             }}
-                            className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 p-2 rounded-lg transition-colors"
+                            className={`p-2 rounded-lg transition-colors ${currentPlan === 'FREE' ? 'text-slate-300' : 'text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20'}`}
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -252,14 +292,25 @@ export default function SaleGroupsList({
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        onToggleSelect(group.id);
+                        if (currentPlan === 'FREE') onLock('feature_locked');
+                        else onToggleSelect(group.id);
                       }}
                       className="absolute top-3 right-3 hover:bg-slate-100 dark:hover:bg-slate-700 p-1.5 rounded-lg transition-colors"
                     >
-                      {isSelected ?
-                        <CheckSquare className="w-5 h-5 text-indigo-600" /> :
-                        <Square className="w-5 h-5 text-slate-400" />
-                      }
+                      <div className="relative">
+                        {isSelected ?
+                          <CheckSquare className="w-5 h-5 text-indigo-600" /> :
+                          <Square className="w-5 h-5 text-slate-400" />
+                        }
+                        {currentPlan === 'FREE' && (
+                          <div className="absolute -top-1 -right-1">
+                            <svg className="w-2.5 h-2.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4">
+                              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
                     </button>
                   )}
 
@@ -330,14 +381,25 @@ export default function SaleGroupsList({
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        onToggleSelect(group.id);
+                        if (currentPlan === 'FREE') onLock('feature_locked');
+                        else onToggleSelect(group.id);
                       }}
                       className="absolute top-3 sm:top-4 right-3 sm:right-4 hover:bg-slate-100 dark:hover:bg-slate-700 p-2 rounded-lg transition-colors z-10"
                     >
-                      {isSelected ?
-                        <CheckSquare className="w-5 h-5 text-indigo-600" /> :
-                        <Square className="w-5 h-5 text-slate-400" />
-                      }
+                      <div className="relative">
+                        {isSelected ?
+                          <CheckSquare className="w-5 h-5 text-indigo-600" /> :
+                          <Square className="w-5 h-5 text-slate-400" />
+                        }
+                        {currentPlan === 'FREE' && (
+                          <div className="absolute -top-1 -right-1">
+                            <svg className="w-3 h-3 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4">
+                              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
                     </button>
                   )}
 

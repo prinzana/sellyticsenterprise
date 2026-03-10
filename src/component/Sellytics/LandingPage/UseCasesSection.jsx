@@ -67,7 +67,7 @@ export default function UseCasesSection() {
             <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             <span className="text-sm font-medium text-emerald-400">Versatile Solutions</span>
           </motion.div>
-          
+
           <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 px-4">
             Built for{' '}
             <span className="relative inline-block">
@@ -83,9 +83,9 @@ export default function UseCasesSection() {
               />
             </span>
           </h2>
-          
+
           <p className="max-w-3xl mx-auto text-lg sm:text-xl text-slate-400 px-4 leading-relaxed">
-            From bustling market stalls to corporate retail chains, Sellytics adapts to your 
+            From bustling market stalls to corporate retail chains, Sellytics adapts to your
             unique business model with precision and flexibility.
           </p>
         </motion.div>
@@ -105,21 +105,21 @@ export default function UseCasesSection() {
               <div className="relative h-full rounded-3xl overflow-hidden bg-gradient-to-br from-white/[0.05] to-white/[0.02] border border-white/10 backdrop-blur-sm transition-all duration-500 hover:border-emerald-500/50 hover:shadow-2xl hover:shadow-emerald-500/10 hover:-translate-y-2">
                 {/* Gradient Overlay on Hover */}
                 <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/0 via-transparent to-purple-500/0 opacity-0 group-hover:opacity-10 transition-opacity duration-500" />
-                
+
                 {/* Image Section */}
                 <div className="relative h-56 sm:h-64 overflow-hidden">
                   <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 to-purple-500/20 mix-blend-overlay z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                  
+
                   <img
                     src={useCase.image}
-                    alt={useCase.title}
+                    alt={`${useCase.title} - Sellytics Inventory Management Solution`}
                     className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110 group-hover:rotate-1"
                   />
-                  
+
                   {/* Gradient Overlays */}
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent" />
                   <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-slate-950/50" />
-                  
+
                   {/* Floating Icon */}
                   <motion.div
                     whileHover={{ scale: 1.1, rotate: 5 }}
@@ -138,7 +138,7 @@ export default function UseCasesSection() {
                   <h3 className="text-xl sm:text-2xl font-bold text-white mb-3 group-hover:text-emerald-400 transition-colors duration-300">
                     {useCase.title}
                   </h3>
-                  
+
                   {/* Description */}
                   <p className="text-sm sm:text-base text-slate-400 leading-relaxed mb-4 group-hover:text-slate-300 transition-colors duration-300">
                     {useCase.description}

@@ -10,6 +10,9 @@ import ReceiptCustomizer from './ReceiptCustomizer';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
 import toast from 'react-hot-toast';
+import { supabase } from '../../../supabaseClient';
+import { PLANS } from '../../../utils/planManager';
+import UpgradePlanModal from '../Shared/UpgradePlanModal';
 
 export default function ReceiptsPage() {
   const storeId = localStorage.getItem('store_id');
@@ -20,6 +23,9 @@ export default function ReceiptsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [editingReceipt, setEditingReceipt] = useState(null);
   const [viewingReceipt, setViewingReceipt] = useState(null);
+  const [currentPlan, setCurrentPlan] = useState(PLANS.FREE);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeReason, setUpgradeReason] = useState('feature_locked');
 
   const {
     store,
@@ -47,7 +53,6 @@ export default function ReceiptsPage() {
     );
   });
 
-  // Apply search filter on top of permission-filtered receipts
   const searchFilteredReceipts = filteredReceipts.filter(r => {
     const term = searchTerm.toLowerCase();
     return (
@@ -57,6 +62,32 @@ export default function ReceiptsPage() {
       `#${r.sale_group_id}`.includes(term)
     );
   });
+
+  // Fetch Plan
+  React.useEffect(() => {
+    const fetchPlan = async () => {
+      const ownerId = localStorage.getItem('owner_id');
+      if (ownerId) {
+        try {
+          const { data, error } = await supabase.rpc('get_owner_subscription', { p_owner_id: Number(ownerId) });
+          if (!error && data?.[0]) {
+            const sub = data[0];
+            if (sub.status === 'active' || (sub.status === 'trialing' && sub.trial_end && new Date(sub.trial_end) > new Date())) {
+              setCurrentPlan(sub.plan_name || PLANS.BUSINESS);
+            }
+          }
+        } catch (err) {
+          console.error('Plan fetch error:', err);
+        }
+      }
+    };
+    fetchPlan();
+  }, [storeId]);
+
+  const handleApplyLock = (reason = 'feature_locked') => {
+    setUpgradeReason(reason);
+    setShowUpgradeModal(true);
+  };
 
   const handleDownloadPDF = async (receipt) => {
     const toastId = toast.loading('Generating PDF...');
@@ -71,10 +102,10 @@ export default function ReceiptsPage() {
       // Use React to render ReceiptPreview
       const { default: ReceiptPreview } = await import('./ReceiptPreview');
       const { createRoot } = await import('react-dom/client');
-      
+
       const root = createRoot(tempDiv);
       const productGroups = getProductGroups();
-      
+
       root.render(
         React.createElement(ReceiptPreview, {
           store,
@@ -154,6 +185,8 @@ export default function ReceiptsPage() {
                 styles={styles}
                 onUpdate={updateStyle}
                 onReset={resetStyles}
+                currentPlan={currentPlan}
+                onLock={handleApplyLock}
               />
               <button
                 onClick={() => setShowSaleGroups(!showSaleGroups)}
@@ -208,6 +241,8 @@ export default function ReceiptsPage() {
                 storeId={storeId}
                 userEmail={userEmail}
                 canDelete={canDelete}
+                currentPlan={currentPlan}
+                onLock={handleApplyLock}
               />
             </div>
           )}
@@ -234,6 +269,15 @@ export default function ReceiptsPage() {
         store={store}
         productGroups={getProductGroups()}
         styles={styles}
+        currentPlan={currentPlan}
+        onLock={handleApplyLock}
+      />
+
+      <UpgradePlanModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        currentPlan={currentPlan}
+        reason={upgradeReason}
       />
     </>
   );

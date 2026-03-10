@@ -1,283 +1,279 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../../supabaseClient';
-import PricingFeatures from '../../Payments/PricingFeatures'
 import {
   FaStore,
-  FaHome,
-  FaArrowDown,
+  FaPlus,
+  FaSearch,
+  FaLock,
 } from 'react-icons/fa';
-import {
-  Sun,
-  Moon,
-  Phone,
-  Mail,
-  //BarChart2,
+import { Phone, Mail, MapPin, AlertTriangle } from 'lucide-react';
+import AddStoreModal from './AddStoreModal';
 
-} from 'lucide-react';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import DashboardAccess from '../../Ops/DashboardAccess';
+import { PLANS, getStoreLimit } from '../../../utils/planManager';
 
-export default function OwnerDashboard() {
+export default function MyStores() {
   const navigate = useNavigate();
   const ownerId = Number(localStorage.getItem('owner_id'));
   const [stores, setStores] = useState([]);
   const [ownerName, setOwnerName] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showPricing, setShowPricing] = useState(false);
-
-  // UI state
-  const [darkMode, setDarkMode] = useState(
-    localStorage.getItem('darkMode') === 'true'
-  );
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortKey, setSortKey] = useState('nameAsc');
-  const [profileOpen, setProfileOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [subscription, setSubscription] = useState(null);
+  const [currentPlan, setCurrentPlan] = useState(PLANS.FREE);
 
-  // apply dark mode class
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', darkMode);
-    localStorage.setItem('darkMode', darkMode);
-  }, [darkMode]);
-
-  // fetch owner + stores
-  useEffect(() => {
+  const fetchStores = useCallback(async () => {
     if (!ownerId) {
       setError('No owner_id found. Please log in again.');
       setLoading(false);
       return;
     }
-    (async () => {
-      // owner
-      const { data: owner, error: ownerErr } = await supabase
-        .from('store_owners')
-        .select('full_name')
-        .eq('id', ownerId)
-        .single();
-      if (ownerErr) {
-        setError(ownerErr.message);
-        setLoading(false);
-        return;
-      }
-      setOwnerName(owner.full_name);
+    setLoading(true);
+    try {
+      // Fetch owner name & subscription
+      const [ownerRes, subRes] = await Promise.all([
+        supabase.from('store_owners').select('full_name').eq('id', ownerId).single(),
+        supabase.rpc('get_owner_subscription', { p_owner_id: ownerId })
+      ]);
 
-      // stores
+      if (ownerRes.error) throw ownerRes.error;
+      setOwnerName(ownerRes.data.full_name);
+
+      const subData = subRes.data?.[0];
+      setSubscription(subData || null);
+
+      if (subData) {
+        if (subData.status === 'active' || (subData.status === 'trialing' && subData.trial_end && new Date(subData.trial_end) > new Date())) {
+          setCurrentPlan(subData.plan_name || PLANS.BUSINESS);
+        } else {
+          setCurrentPlan(PLANS.FREE);
+        }
+      }
+
+      // Fetch stores
       const { data, error: storesErr } = await supabase
         .from('stores')
-        .select('id, shop_name, physical_address, phone_number, email_address, is_active')
+        .select('id, shop_name, physical_address, phone_number, email_address, is_active, nature_of_business')
         .eq('owner_user_id', ownerId)
         .order('created_at', { ascending: false });
-      if (storesErr) {
-        setError(storesErr.message);
-      } else {
-        setStores(data || []);
-      }
+      if (storesErr) throw storesErr;
+      setStores(data || []);
+    } catch (err) {
+      setError(err.message);
+    } finally {
       setLoading(false);
-    })();
+    }
   }, [ownerId]);
 
-  // filter + sort
-  const filtered = stores.filter(store => {
-    const nameMatch = store.shop_name
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    return nameMatch;
-  });
-  const sorted = [...filtered].sort((a, b) => {
-    if (sortKey === 'nameAsc') {
-      return a.shop_name.localeCompare(b.shop_name);
-    }
-    if (sortKey === 'nameDesc') {
-      return b.shop_name.localeCompare(a.shop_name);
-    }
-    if (sortKey === 'activeFirst') {
-      return (b.is_active === true) - (a.is_active === true);
-    }
-    if (sortKey === 'inactiveFirst') {
-      return (b.is_active === false) - (a.is_active === false);
-    }
-    return 0;
-  });
+  useEffect(() => {
+    fetchStores();
+  }, [fetchStores]);
 
-  // handlers
-  const toggleDarkMode = () => setDarkMode(prev => !prev);
-  const logout = () => {
-    localStorage.clear();
-    navigate('/login');
-  };
-
-  // loading skeleton
-  const SkeletonCard = () => (
-    <div className="p-5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow animate-pulse h-48" />
+  // Filter stores
+  const filtered = stores.filter(store =>
+    store.shop_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (store.physical_address || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Loading skeleton
   if (loading) {
     return (
-      <div className="p-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <SkeletonCard key={i} />
-        ))}
+      <div className="space-y-6">
+        <div className="h-24 bg-slate-100 dark:bg-slate-800 animate-pulse rounded-2xl" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="h-56 bg-slate-100 dark:bg-slate-800 animate-pulse rounded-2xl" />
+          ))}
+        </div>
       </div>
     );
   }
+
   if (error) {
     return (
-      <div className="p-6 text-red-600 text-center">Error: {error}</div>
+      <div className="text-center py-20">
+        <p className="text-red-500 font-medium">{error}</p>
+      </div>
     );
   }
 
+  const storeLimit = getStoreLimit(currentPlan, subscription);
+  const isInfiniteStores = storeLimit === Infinity;
+  const isStoreLimitReached = !isInfiniteStores && stores.length >= storeLimit;
+
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-6">
-      <DashboardAccess />
-      <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
-
-      {/* ─── HEADER ────────────────────────────────────────── */}
-      <header className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-2">
-          <FaHome className="text-indigo-600 dark:text-indigo-400 w-6 h-6" />
-          <h1 className="text-3xl font-bold">My Stores</h1>
-        </div>
-        <div className="flex items-center gap-4">
-          {/* dark mode */}
-          <button
-            onClick={toggleDarkMode}
-            aria-label="Toggle dark mode"
-            className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
-          >
-            {darkMode ? (
-              <Sun className="w-5 h-5" />
-            ) : (
-              <Moon className="w-5 h-5" />
-            )}
-          </button>
-
-          {/* profile dropdown */}
-          <div className="relative">
-            <button
-              onClick={() => setProfileOpen(open => !open)}
-              className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white"
-              aria-label="Profile menu"
-            >
-              {ownerName.charAt(0)}
-            </button>
-            {profileOpen && (
-              <ul className="absolute right-0 mt-2 w-32 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow">
-               
-                <li
-                  onClick={logout}
-                  className="px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
-                >
-                  Logout
-                </li>
-              </ul>
-            )}
+    <div className="space-y-6">
+      {/* ─── HEADER ──────────────────── */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">My Stores</h2>
+          <p className="text-slate-500 text-sm">
+            {stores.length} of {isInfiniteStores ? 'Unlimited' : storeLimit} store{storeLimit !== 1 ? 's' : ''} under <span className="font-bold text-indigo-600">{ownerName}</span>
+          </p>
+          {/* Limit progress bar */}
+          <div className="mt-2 flex items-center gap-3">
+            <div className="w-40 h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all ${isInfiniteStores ? 'bg-emerald-500' : isStoreLimitReached ? 'bg-red-500' : stores.length >= storeLimit - 1 ? 'bg-amber-500' : 'bg-emerald-500'
+                  }`}
+                style={{ width: `${isInfiniteStores ? 100 : Math.min((stores.length / storeLimit) * 100, 100)}%` }}
+              />
+            </div>
+            <span className={`text-xs font-bold ${isStoreLimitReached ? 'text-red-500' : 'text-slate-400'
+              }`}>
+              {stores.length}/{isInfiniteStores ? '∞' : storeLimit} slots
+            </span>
           </div>
         </div>
-      </header>
 
-      {/* ─── WELCOME ──────────────────────────────────────── */}
-      <section className="text-center mb-8">
-        <h2 className="text-3xl">
-          Welcome, <span className=" text-3xl font-semibold text-indigo-800">{ownerName}</span>!
-        </h2>
-        <p className="text-gray-600 dark:text-gray-400">
-          Click a card to manage that store’s dashboard <br/>
-          <FaArrowDown className="inline text-indigo-600" />
-        </p>
-      </section>
-
-      {/* ─── SEARCH & SORT ────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 mb-6">
-        <input
-          type="text"
-          placeholder="Search stores…"
-          value={searchTerm}
-          onChange={e => setSearchTerm(e.target.value)}
-          className="flex-1 p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
-        />
-        <select
-          value={sortKey}
-          onChange={e => setSortKey(e.target.value)}
-          className="mt-2 sm:mt-0 p-2 border rounded dark:bg-gray-700 dark:border-gray-600"
-        >
-          <option value="nameAsc">Name (A–Z)</option>
-          <option value="nameDesc">Name (Z–A)</option>
-          <option value="activeFirst">Active first</option>
-          <option value="inactiveFirst">Inactive first</option>
-        </select>
+        {isStoreLimitReached ? (
+          <div className="flex items-center gap-2 px-5 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-500 rounded-xl font-bold text-sm cursor-not-allowed" title="Store limit reached">
+            <FaLock size={12} /> Limit Reached ({storeLimit})
+          </div>
+        ) : (
+          <button
+            onClick={() => setIsAddModalOpen(true)}
+            className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-500/20 font-bold text-sm"
+          >
+            <FaPlus size={12} /> Add New Store
+          </button>
+        )}
       </div>
 
-      {/* ─── EMPTY STATE ─────────────────────────────────── */}
-      {sorted.length === 0 && !showPricing && (
-  <div className="text-center text-gray-600 dark:text-gray-400 py-20">
-    <p className="mb-4">This is a premium feature. Upgrade to access store management.</p>
-    <button
-      onClick={() => setShowPricing(true)}
-      className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
-    >
-      Upgrade to Premium
-    </button>
-  </div>
-)}
+      {/* Limit warning banner */}
+      {isStoreLimitReached && (
+        <div className="flex items-center gap-3 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-100 dark:border-amber-900/30">
+          <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0" />
+          <p className="text-xs text-amber-700 dark:text-amber-300">
+            <strong>Store limit reached.</strong> Your plan allows a maximum of {storeLimit} stores. Contact support or upgrade for more.
+          </p>
+        </div>
+      )}
 
-{showPricing && <PricingFeatures />}
+      {/* ─── SEARCH ──────────────────── */}
+      {stores.length > 0 && (
+        <div className="relative max-w-md">
+          <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+          <input
+            type="text"
+            placeholder="Search stores..."
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-slate-950 text-slate-900 dark:text-white transition-all font-medium"
+          />
+        </div>
+      )}
 
-      {/* ─── STORES GRID ─────────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {sorted.map(store => (
+      {/* ─── EMPTY STATE ─────────────── */}
+      {filtered.length === 0 && !searchTerm && (
+        <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-3xl border border-dashed border-slate-300 dark:border-slate-700">
+          <div className="w-20 h-20 bg-indigo-50 dark:bg-indigo-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <FaStore className="text-4xl text-indigo-400" />
+          </div>
+          <h3 className="text-xl font-bold text-slate-900 dark:text-white">No Stores Yet</h3>
+          <p className="text-slate-500 max-w-sm mx-auto mt-2">
+            Add your first store to start managing your business.
+          </p>
+          <button
+            onClick={() => setIsAddModalOpen(true)}
+            className="mt-6 px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors flex items-center gap-2 mx-auto"
+          >
+            <FaPlus /> Create Your First Store
+          </button>
+        </div>
+      )}
+
+      {filtered.length === 0 && searchTerm && (
+        <div className="text-center py-12">
+          <p className="text-slate-500 font-medium">No stores match "{searchTerm}"</p>
+        </div>
+      )}
+
+      {/* ─── STORES GRID ─────────────── */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filtered.map(store => (
           <div
             key={store.id}
             onClick={() => {
               localStorage.setItem('store_id', store.id);
               navigate('/dashboard');
+              window.location.reload();
             }}
-            className="relative p-5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow hover:shadow-lg transform hover:scale-105 transition cursor-pointer"
+            className="relative bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 hover:shadow-xl transition-all cursor-pointer group overflow-hidden"
           >
-            {/* status badge */}
-            <span
-              className={`absolute top-2 right-2 text-xs px-2 py-1 rounded-full ${
-                store.is_active
-                  ? 'bg-green-100 text-green-800'
-                  : 'bg-red-100 text-red-800'
-              }`}
-            >
-              {store.is_active ? 'Active' : 'Inactive'}
-            </span>
+            {/* Accent bar */}
+            <div className={`absolute top-0 left-0 w-1 h-full ${store.is_active ? 'bg-emerald-500' : 'bg-slate-300'}`} />
 
-            <div className="flex items-center gap-2 mb-3">
-              <FaStore className="text-2xl text-indigo-500 dark:text-indigo-300" />
-              <h3 className="text-xl font-semibold">
-                {store.shop_name}
-              </h3>
-              <span className="text-sm text-gray-500 dark:text-gray-400">
-                #{store.id}
+            <div className="p-6">
+              {/* Status badge */}
+              <span
+                className={`absolute top-4 right-4 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${store.is_active
+                  ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400'
+                  : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
+                  }`}
+              >
+                {store.is_active ? 'Active' : 'Inactive'}
               </span>
-            </div>
 
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-              {store.physical_address}
-            </p>
+              {/* Store icon + name */}
+              <div className="flex items-start gap-3 mb-4 pr-16">
+                <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center flex-shrink-0 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/40 transition-colors">
+                  <FaStore className="text-indigo-500" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 transition-colors">
+                    {store.shop_name}
+                  </h3>
+                  {store.nature_of_business && (
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                      {store.nature_of_business}
+                    </span>
+                  )}
+                </div>
+              </div>
 
-            <div className="space-y-1 text-sm text-gray-500 dark:text-gray-400">
-              <div className="flex items-center gap-2">
-                <Phone className="w-4 h-4" />
-                {store.phone_number}
+              {/* Details */}
+              <div className="space-y-2 text-sm text-slate-500 dark:text-slate-400">
+                <div className="flex items-start gap-2">
+                  <MapPin className="w-4 h-4 mt-0.5 text-slate-400 flex-shrink-0" />
+                  <span className="line-clamp-2">{store.physical_address || 'No address set'}</span>
+                </div>
+                {store.phone_number && (
+                  <div className="flex items-center gap-2">
+                    <Phone className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                    <span>{store.phone_number}</span>
+                  </div>
+                )}
+                {store.email_address && (
+                  <div className="flex items-center gap-2">
+                    <Mail className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                    <span className="truncate">{store.email_address}</span>
+                  </div>
+                )}
               </div>
-              <div className="flex items-center gap-2">
-                <Mail className="w-4 h-4" />
-                {store.email_address}
+
+              {/* Footer */}
+              <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-400">ID: #{store.id}</span>
+                <span className="text-xs font-bold text-indigo-500 group-hover:text-indigo-700 transition-colors">
+                  Open Dashboard →
+                </span>
               </div>
-              {/*  */}
-            {/*  <div className="flex items-center gap-2">
-                <BarChart2 className="w-4 h-4" />
-                Orders:  store.stats?.newOrders ?? 0 
-              </div>*/}
             </div>
           </div>
         ))}
       </div>
+
+      {/* ─── ADD STORE MODAL ─────────── */}
+      <AddStoreModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onStoreAdded={() => fetchStores()}
+        ownerId={ownerId}
+        ownerName={ownerName}
+      />
     </div>
   );
 }

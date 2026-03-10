@@ -6,7 +6,8 @@ import {
   FaSearch, FaChevronRight
 } from "react-icons/fa";
 
-
+import useDashboardAccess from '../Stores/useDashboardAccess';
+import { hasFeature } from '../../../utils/planManager';
 
 import Reconciliation from '../Financials/Reconciliation/Reconciliation';
 import FinancialDashboard from '../Financials/FinancialDashboard/FinancialDashboard';
@@ -14,9 +15,6 @@ import AccountPayable from '../Financials/AccountPayable/AccountPayable'
 import AccountsReceivable from '../Financials/AccountReceivables/AccountsReceivable'
 import FinancialReports from '../Financials/FinancialReports/FinancialReports'
 import InventoryValuation from '../Financials/InventoryValuation/InventoryValuation'
-
-
-
 
 const financeTools = [
   {
@@ -34,6 +32,7 @@ const financeTools = [
     icon: FaMoneyCheckAlt,
     desc: "Track and manage your outstanding payments",
     component: <AccountPayable />,
+    featureKey: "FINANCIAL_DASHBOARD",
     isFreemium: false,
     category: "Finance",
   },
@@ -43,6 +42,7 @@ const financeTools = [
     icon: FaFileInvoiceDollar,
     desc: "Monitor payments owed to your business",
     component: <AccountsReceivable />,
+    featureKey: "FINANCIAL_DASHBOARD",
     isFreemium: false,
     category: "Finance",
   },
@@ -52,17 +52,17 @@ const financeTools = [
     icon: FaClipboardList,
     desc: "View profit & loss, balance sheet, and cash flow",
     component: <FinancialReports />,
+    featureKey: "FINANCIAL_DASHBOARD",
     isFreemium: false,
     category: "Finance",
   },
-
-
   {
     key: "valuation",
     label: "Inventory Valuations",
     icon: FaBoxes,
     desc: "Evaluate your stock's financial worth over time",
     component: <InventoryValuation />,
+    featureKey: "FINANCIAL_DASHBOARD",
     isFreemium: false,
     category: "Finance",
   },
@@ -72,178 +72,74 @@ const financeTools = [
     icon: FaExchangeAlt,
     desc: "Audit and reconcile all your financial transactions",
     component: <Reconciliation />,
+    featureKey: "FINANCIAL_DASHBOARD",
     isFreemium: false,
     category: "Finance",
   },
 ];
 
 export default function Finance() {
-  const [shopName, setShopName] = useState('Store');
+  const {
+    shopName,
+    isPremium,
+    userPlan,
+    registrationDate,
+    isLoading,
+    errorMessage,
+    setErrorMessage
+  } = useDashboardAccess();
+
   const [activeTool, setActiveTool] = useState(null);
   const [isAuthorized, setIsAuthorized] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isPremium, setIsPremium] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    async function checkAuthorizationAndFetchShopName() {
-      setIsLoading(true);
-      setErrorMessage('');
+    async function checkAuthorization() {
+      if (isLoading) return;
 
-      try {
-        const storeIdRaw = localStorage.getItem('store_id');
-        const userIdRaw = localStorage.getItem('user_id');
-        const ownerIdRaw = localStorage.getItem('owner_id');
-        const userEmail = localStorage.getItem('email') || localStorage.getItem('user_email') || localStorage.getItem('email_address');
-        const userAccessRaw = localStorage.getItem('user_access');
+      const storeId = localStorage.getItem('store_id');
+      const userId = localStorage.getItem('user_id');
+      const ownerId = localStorage.getItem('owner_id');
 
-        const storeId = storeIdRaw ? Number(storeIdRaw) : null;
-        const userId = userIdRaw ? Number(userIdRaw) : null;
-        const ownerId = ownerIdRaw ? Number(ownerIdRaw) : null;
+      if (!storeId) return;
 
-        if (!storeId || (!userId && !ownerId && !userEmail)) {
-          setIsAuthorized(false);
-          setIsLoading(false);
-          return;
+      let isAuthorizedUser = false;
+
+      // Check role authorization
+      if (userId) {
+        const { data: storeUserRow } = await supabase
+          .from('store_users')
+          .select('role, store_id')
+          .eq('id', userId)
+          .maybeSingle();
+
+        if (storeUserRow && Number(storeUserRow.store_id) === Number(storeId)) {
+          const role = String(storeUserRow.role || '').toLowerCase();
+          if (['admin', 'account', 'manager'].includes(role)) isAuthorizedUser = true;
         }
-
-        let isAuthorizedUser = false;
-        let hasPremiumAccess = false;
-        let fetchedShopName = 'Store';
-
-        // === AUTHORIZATION LOGIC (unchanged) ===
-        if (userId) {
-          const { data: storeUserRow } = await supabase
-            .from('store_users')
-            .select('id, role, store_id, email_address')
-            .eq('id', userId)
-            .maybeSingle();
-
-          if (storeUserRow && Number(storeUserRow.store_id) === Number(storeId)) {
-            const role = String(storeUserRow.role || '').trim().toLowerCase();
-            if (['admin', 'account', 'manager'].includes(role)) {
-              isAuthorizedUser = true;
-            }
-          }
-        }
-
-        if (!isAuthorizedUser && ownerId) {
-          const { data: storeByOwner } = await supabase
-            .from('stores')
-            .select('id, owner_user_id')
-            .eq('id', storeId)
-            .eq('owner_user_id', ownerId)
-            .maybeSingle();
-          if (storeByOwner) isAuthorizedUser = true;
-        }
-
-        if (!isAuthorizedUser && userId) {
-          const { data: storeByUserAsOwner } = await supabase
-            .from('stores')
-            .select('id, owner_user_id')
-            .eq('id', storeId)
-            .eq('owner_user_id', userId)
-            .maybeSingle();
-          if (storeByUserAsOwner) isAuthorizedUser = true;
-        }
-
-        if (!isAuthorizedUser && userEmail) {
-          const { data: ownerRow } = await supabase
-            .from('store_owners')
-            .select('id, email')
-            .ilike('email', userEmail)
-            .maybeSingle();
-
-          if (ownerRow?.id) {
-            const { data: storeByOwnerRecord } = await supabase
-              .from('stores')
-              .select('id')
-              .eq('id', storeId)
-              .eq('owner_user_id', ownerRow.id)
-              .maybeSingle();
-            if (storeByOwnerRecord) isAuthorizedUser = true;
-          }
-        }
-
-        setIsAuthorized(Boolean(isAuthorizedUser));
-        if (!isAuthorizedUser) {
-          setIsLoading(false);
-          return;
-        }
-
-        // === PREMIUM LOGIC (unchanged) ===
-        const { data: storeData } = await supabase
-          .from('stores')
-          .select('shop_name, premium')
-          .eq('id', storeId)
-          .single();
-
-        if (storeData) {
-          fetchedShopName = storeData.shop_name || fetchedShopName;
-          if (storeData.premium === true || String(storeData.premium).toLowerCase() === 'true') {
-            hasPremiumAccess = true;
-          }
-        }
-
-        if (!hasPremiumAccess && userEmail) {
-          const { data: userStoreRows } = await supabase
-            .from('store_users')
-            .select('store_id')
-            .ilike('email_address', userEmail);
-
-          if (userStoreRows?.length > 0) {
-            const associatedStoreIds = userStoreRows.map(r => r.store_id);
-            const { data: premiumStores } = await supabase
-              .from('stores')
-              .select('id, shop_name, premium')
-              .in('id', associatedStoreIds)
-              .eq('premium', true);
-            if (premiumStores?.length > 0) {
-              hasPremiumAccess = true;
-              fetchedShopName = premiumStores[0].shop_name || fetchedShopName;
-            }
-          }
-        }
-
-        if (!hasPremiumAccess && userAccessRaw) {
-          try {
-            const userAccess = JSON.parse(userAccessRaw);
-            const accessStoreIds = userAccess?.store_ids || [];
-            if (accessStoreIds.length > 0) {
-              const { data: premiumAccessStores } = await supabase
-                .from('stores')
-                .select('id, shop_name, premium')
-                .in('id', accessStoreIds)
-                .eq('premium', true);
-              if (premiumAccessStores?.length > 0) {
-                hasPremiumAccess = true;
-                fetchedShopName = premiumAccessStores[0].shop_name || fetchedShopName;
-              }
-            }
-          } catch (err) { /* ignore */ }
-        }
-
-        setShopName(fetchedShopName);
-        setIsPremium(hasPremiumAccess);
-        if (!hasPremiumAccess) {
-          setErrorMessage('Some features are available only for premium users. Please upgrade your store’s subscription.');
-        }
-      } catch (error) {
-        console.error('Authorization check error:', error);
-        setErrorMessage('An unexpected error occurred. Please try again later.');
-        setIsAuthorized(false);
-      } finally {
-        setIsLoading(false);
       }
-    }
 
-    checkAuthorizationAndFetchShopName();
-  }, []);
+      if (!isAuthorizedUser && (ownerId || userId)) {
+        const { data: storeByOwner } = await supabase
+          .from('stores')
+          .select('id')
+          .eq('id', storeId)
+          .eq('owner_user_id', ownerId || userId)
+          .maybeSingle();
+        if (storeByOwner) isAuthorizedUser = true;
+      }
+
+      setIsAuthorized(isAuthorizedUser);
+    }
+    checkAuthorization();
+  }, [isLoading]);
 
   const handleToolClick = (key) => {
     const tool = financeTools.find(t => t.key === key);
-    if (!tool.isFreemium && !isPremium) {
+    const isAccessible = tool.isFreemium ||
+      (tool.featureKey ? hasFeature(tool.featureKey, userPlan, registrationDate) : isPremium);
+
+    if (!isAccessible) {
       setErrorMessage(`Access Denied: ${tool.label} is a premium feature. Please upgrade your subscription.`);
       return;
     }

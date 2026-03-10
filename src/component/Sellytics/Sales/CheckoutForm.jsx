@@ -38,7 +38,9 @@ export default function CheckoutForm({
   onCancel,
   formatPrice,
   soldImeis = new Set(),
-  isEditing = false // New Prop
+  isEditing = false,
+  currentPlan,
+  onLock
 }) {
   const paymentMethods = ['Cash', 'Card', 'Bank Transfer', 'Wallet'];
 
@@ -315,16 +317,42 @@ export default function CheckoutForm({
 
           {/* Email Receipt */}
           {selectedCustomerId && (
-            <label className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg cursor-pointer">
-              <input
-                type="checkbox"
-                checked={emailReceipt}
-                onChange={(e) => onEmailReceiptChange(e.target.checked)}
-                className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
-              />
-              <div className="flex items-center gap-2 text-sm">
-                <Mail className="w-4 h-4 text-slate-500" />
-                Send email receipt
+            <label
+              onClick={(e) => {
+                if (currentPlan === 'FREE') {
+                  e.preventDefault();
+                  onLock('feature_locked');
+                }
+              }}
+              className={`flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg cursor-pointer transition-all ${currentPlan === 'FREE' ? 'opacity-70 group' : ''}`}
+            >
+              <div className="relative">
+                <input
+                  type="checkbox"
+                  checked={emailReceipt}
+                  readOnly={currentPlan === 'FREE'}
+                  onChange={(e) => onEmailReceiptChange(e.target.checked)}
+                  className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                />
+                {currentPlan === 'FREE' && (
+                  <div className="absolute -top-1.5 -right-1.5 bg-slate-100 dark:bg-slate-800 rounded-full p-0.5 border border-slate-200 dark:border-slate-700 shadow-sm">
+                    <svg className="w-2 h-2 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4">
+                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                    </svg>
+                  </div>
+                )}
+              </div>
+              <div className="flex-1 flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                  <Mail className="w-4 h-4 text-slate-500" />
+                  <span>Send email receipt</span>
+                </div>
+                {currentPlan === 'FREE' && (
+                  <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-0.5 rounded-full border border-indigo-100 dark:border-indigo-800 uppercase tracking-wider">
+                    Premium
+                  </span>
+                )}
               </div>
             </label>
           )}

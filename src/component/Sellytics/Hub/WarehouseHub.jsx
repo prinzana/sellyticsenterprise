@@ -1,4 +1,3 @@
-// WarehouseHub.jsx - Final Clean Version
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ClientOnboardModal from "./ClientOnboardModal"; // Still here - used for external clients
@@ -15,7 +14,12 @@ import {
   Bell,
   Users,
   Inbox,
+  Lock,
+
 } from "lucide-react";
+
+import useDashboardAccess from "../Stores/useDashboardAccess";
+import { hasFeature } from "../../../utils/planManager";
 
 // Custom components
 import WarehouseDashboardStats from "./WarehouseDashboardStats";
@@ -33,7 +37,6 @@ import { useWarehouses } from "./useWarehouses";
 import { useWarehouseClients } from "./useWarehouseClients";
 import { useWarehouseStats } from "./useWarehouseStats";
 
-
 // Enterprise features
 import CollaborationPanel from "./enterprise/Collaboration/CollaborationPanel";
 import { useCollaboration } from "./enterprise/Collaboration/useCollaboration";
@@ -41,6 +44,7 @@ import { useNotifications } from "./enterprise/hooks/useNotifications";
 import NotificationPanel from "./enterprise/components/NotificationPanel";
 
 export default function WarehouseHub() {
+  const { userPlan, registrationDate, isLoading: accessLoading } = useDashboardAccess();
   const { userEmail, storeId } = useSession();
 
   const [selectedWarehouseId, setSelectedWarehouseId] = useState(null);
@@ -55,27 +59,7 @@ export default function WarehouseHub() {
   const { clients, loading: clientsLoading, refetch: refetchClients } = useWarehouseClients(selectedWarehouseId);
   const { stats, loading: statsLoading } = useWarehouseStats(selectedWarehouseId);
   const ns = useNotifications({ warehouseId: selectedWarehouseId });
-
-  // Enterprise Collaboration Hook
-  // We initialize it here to track presence across the whole Hub
   const collab = useCollaboration({ warehouseId: selectedWarehouseId, clientId: null });
-
-  // Update presence when view changes
-  useEffect(() => {
-    if (collab.activeSession) {
-      // Broadcast navigation event
-      collab.broadcast('nav', { view: activeView });
-      // Update persistent presence status
-      collab.updatePresence(activeView);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeView, collab.activeSession]);
-
-  useEffect(() => {
-    if (warehouses.length > 0 && !selectedWarehouseId) {
-      setSelectedWarehouseId(warehouses[0].id);
-    }
-  }, [warehouses, selectedWarehouseId]);
 
   const internalStores = clients?.filter(c => c.client_type === "SELLYTICS_STORE") || [];
   const externalStores = clients?.filter(c => c.client_type !== "SELLYTICS_STORE") || [];
@@ -106,8 +90,60 @@ export default function WarehouseHub() {
     refetchClients();
   };
 
-  if (!userEmail || !storeId) {
+  useEffect(() => {
+    if (collab.activeSession) {
+      collab.broadcast('nav', { view: activeView });
+      collab.updatePresence(activeView);
+    }
+  }, [activeView, collab.activeSession, collab]);
 
+  useEffect(() => {
+    if (warehouses.length > 0 && !selectedWarehouseId) {
+      setSelectedWarehouseId(warehouses[0].id);
+    }
+  }, [warehouses, selectedWarehouseId]);
+
+  if (accessLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
+        <div className="animate-pulse text-slate-400">Verifying access...</div>
+      </div>
+    );
+  }
+
+  const isWarehouseAllowed = hasFeature('WAREHOUSE', userPlan, registrationDate);
+
+  if (!isWarehouseAllowed) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-6">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="max-w-md w-full bg-white dark:bg-slate-900 rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800"
+        >
+          <div className="p-8 text-center">
+            <div className="w-20 h-20 bg-indigo-100 dark:bg-indigo-900/40 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <Lock className="w-10 h-10 text-indigo-600 dark:text-indigo-400" />
+            </div>
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">Business Feature</h2>
+            <p className="text-slate-600 dark:text-slate-400 mb-8 leading-relaxed">
+              Warehouse management and multi-store distribution are exclusive to our <span className="text-indigo-600 font-bold">Business Plan</span>.
+            </p>
+            <div className="space-y-3">
+              <a href="/upgrade" target="_blank" rel="noopener noreferrer"
+                className="block w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl transition-all shadow-lg shadow-indigo-600/20"
+              >
+                Upgrade to Business
+              </a>
+              <p className="text-xs text-slate-500">Manage all your warehouses and stores in one hub.</p>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
+  if (!userEmail || !storeId) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
         <motion.div

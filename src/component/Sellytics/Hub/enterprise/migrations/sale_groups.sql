@@ -1,0 +1,23 @@
+create table public.sale_groups (
+  id serial not null,
+  store_id integer not null,
+  total_amount numeric(12, 2) not null,
+  payment_method character varying(50) not null,
+  created_at timestamp with time zone not null default CURRENT_TIMESTAMP,
+  customer_id integer null,
+  customer_name text null,
+  email_receipt boolean null default false,
+  email_receipt_sent boolean null,
+  sent_email_at timestamp with time zone null,
+  name text null,
+  client_ref text null,
+  created_by_email text null,
+  created_by_stores bigint null,
+  created_by_user_id bigint null,
+  owner_id bigint null,
+  constraint sale_groups_pkey primary key (id),
+  constraint sale_groups_client_ref_key unique (client_ref),
+  constraint unique_store_group unique (store_id, name),
+  constraint sale_groups_customer_id_fkey foreign KEY (customer_id) references customer (id) on delete set null,
+  constraint sale_groups_store_id_fkey foreign KEY (store_id) references stores (id) on delete CASCADE
+) TABLESPACE pg_default;

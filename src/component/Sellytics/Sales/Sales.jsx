@@ -23,6 +23,9 @@ import useCurrency from './hooks/useCurrency';
 import { getIdentity, filterSalesByPermission } from '../services/identityService';
 import salesService from './services/salesService';
 import offlineCache from '../db/offlineCache';
+import { supabase } from '../../../supabaseClient';
+import { PLANS } from '../../../utils/planManager';
+import UpgradePlanModal from '../Shared/UpgradePlanModal';
 
 // ./
 import ScannerModal from './ScannerModal';
@@ -81,11 +84,43 @@ export default function Tracker() {
   const [dateFilter, setDateFilter] = useState('all');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const { formatPrice } = useCurrency();
+
   // Modal state
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [viewingSale, setViewingSale] = useState(null);
   const [editingSale, setEditingSale] = useState(null);
-  const { formatPrice } = useCurrency();
+
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeReason, setUpgradeReason] = useState('feature_locked');
+
+  // Fetch Plan
+  const [currentPlan, setCurrentPlan] = useState(PLANS.FREE);
+
+  useEffect(() => {
+    const fetchPlan = async () => {
+      const ownerId = localStorage.getItem('owner_id');
+      if (ownerId) {
+        try {
+          const { data, error } = await supabase.rpc('get_owner_subscription', { p_owner_id: Number(ownerId) });
+          if (!error && data?.[0]) {
+            const sub = data[0];
+            if (sub.status === 'active' || (sub.status === 'trialing' && sub.trial_end && new Date(sub.trial_end) > new Date())) {
+              setCurrentPlan(sub.plan_name || PLANS.BUSINESS);
+            }
+          }
+        } catch (err) {
+          console.error('Plan fetch error:', err);
+        }
+      }
+    };
+    fetchPlan();
+  }, [currentStoreId]);
+
+  const handleApplyLock = (reason = 'feature_locked') => {
+    setUpgradeReason(reason || 'feature_locked');
+    setShowUpgradeModal(true);
+  };
 
 
   // Format price helper
@@ -625,6 +660,8 @@ export default function Tracker() {
                 setSearch={setSearch}
                 dateFilter={dateFilter}
                 onDateFilterChange={setDateFilter}
+                currentPlan={currentPlan}
+                onLock={handleApplyLock}
               />
             )}
           </div>
@@ -646,6 +683,8 @@ export default function Tracker() {
             isOnline={isOnline}
             isSubmitting={isSubmitting}
             soldImeis={soldImeis}
+            currentPlan={currentPlan}
+            onLock={handleApplyLock}
             onProductChange={(lineId, productId) => {
               const product = products.find(p => p.id === productId);
               if (product) {
@@ -750,6 +789,13 @@ export default function Tracker() {
           formatPrice={formatPrice}
         />
       )}
+
+      <UpgradePlanModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        currentPlan={currentPlan}
+        reason={upgradeReason}
+      />
     </>
   );
 }

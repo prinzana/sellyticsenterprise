@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 export default function AttendantFormModal({
   attendant = {},
   stores,
+  branches = [],
   onClose,
   onSubmit,
 }) {
@@ -48,22 +49,59 @@ export default function AttendantFormModal({
           ))}
 
           <div>
-            <label className="block text-sm font-medium">Store</label>
+            <label className="block text-sm font-medium">Store (Organization)</label>
             <select
               value={formState.store_id || ""}
               onChange={(e) =>
                 handleChange("store_id", Number(e.target.value))
               }
-              className="mt-1 block w-full border rounded px-3 py-2"
+              className="mt-1 block w-full border rounded px-3 py-2 bg-white dark:bg-gray-700"
               required
             >
-              <option value="">Select a store</option>
+              <option value="">Select an organization</option>
               {stores.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.shop_name}
                 </option>
               ))}
             </select>
+          </div>
+
+          {branches.length > 0 && (
+            <div>
+              <label className="block text-sm font-medium">Branch Assignment</label>
+              <select
+                value={formState.branch_id || ""}
+                onChange={(e) =>
+                  handleChange("branch_id", e.target.value ? Number(e.target.value) : null)
+                }
+                className="mt-1 block w-full border rounded px-3 py-2 bg-white dark:bg-gray-700"
+              >
+                <option value="">Select a branch (Optional)</option>
+                {branches
+                  .filter((b) => b.store_id === formState.store_id)
+                  .map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.branch_name}
+                    </option>
+                  ))}
+              </select>
+            </div>
+          )}
+
+          <div>
+            <label className="block text-sm font-medium">
+              {attendant.id ? "New Password (Leave blank to keep current)" : "Set Password *"}
+            </label>
+            <input
+              type="password"
+              placeholder={attendant.id ? "••••••••" : "Minimum 6 characters"}
+              value={formState.password || ""}
+              onChange={(e) => handleChange("password", e.target.value)}
+              className="mt-1 block w-full border rounded px-3 py-2 bg-white dark:bg-gray-700"
+              required={!attendant.id}
+              minLength={6}
+            />
           </div>
 
           <div className="flex gap-2">

@@ -160,10 +160,10 @@ export default function EvaluationPage({ inventory }) {
         >
           <div className="flex items-start gap-2 sm:gap-3 flex-col sm:flex-row">
             <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${metrics.profitMargin >= 30
-                ? 'bg-emerald-100 dark:bg-emerald-900/30'
-                : metrics.profitMargin >= 15
-                  ? 'bg-amber-100 dark:bg-amber-900/30'
-                  : 'bg-red-100 dark:bg-red-900/30'
+              ? 'bg-emerald-100 dark:bg-emerald-900/30'
+              : metrics.profitMargin >= 15
+                ? 'bg-amber-100 dark:bg-amber-900/30'
+                : 'bg-red-100 dark:bg-red-900/30'
               }`}>
               {metrics.profitMargin >= 20 ? (
                 <ArrowUp className={`w-4 h-4 sm:w-5 sm:h-5 ${metrics.profitMargin >= 30 ? 'text-emerald-600' : 'text-amber-600'}`} />

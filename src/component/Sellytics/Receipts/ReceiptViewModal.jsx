@@ -227,19 +227,19 @@ export default function ReceiptViewModal({
                   </button>
 
                   <button
-  onClick={onDelete} // This calls deleteReceiptOnly → safe, no recreate
-  className="flex items-center gap-2 px-5 py-3 bg-red-100 ...">
-  <Trash2 className="w-4 h-4" />
-  Delete Receipt Only
-</button>
+                    onClick={onDelete} // This calls deleteReceiptOnly → safe, no recreate
+                    className="flex items-center gap-2 px-5 py-3 bg-red-100 ...">
+                    <Trash2 className="w-4 h-4" />
+                    Delete Receipt Only
+                  </button>
 
-{/* Optional: Add full delete */}
-<button
-  onClick={onDeleteEntireSale}
-  className="flex items-center gap-2 px-5 py-3 bg-red-600 text-white ...">
-  <Trash2 className="w-4 h-4" />
-  Delete Entire Sale
-</button>
+                  {/* Optional: Add full delete */}
+                  <button
+                    onClick={onDeleteEntireSale}
+                    className="flex items-center gap-2 px-5 py-3 bg-red-600 text-white ...">
+                    <Trash2 className="w-4 h-4" />
+                    Delete Entire Sale
+                  </button>
                 </>
               )}
             </div>

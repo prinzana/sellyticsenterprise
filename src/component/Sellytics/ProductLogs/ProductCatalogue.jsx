@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
 import toast, { Toaster } from 'react-hot-toast';
+import { supabase } from '../../../supabaseClient';
 import CurrencySelector from './CurrencySelector';
 // Components
 import ProductCard from './ProductCard';
@@ -23,6 +24,8 @@ import { useCurrency } from '../../context/currencyContext';
 
 import { useOfflineProducts } from './hooks/useOfflineProducts';
 import { useOfflineSync } from './hooks/useOfflineSync';
+import UpgradePlanModal from '../Shared/UpgradePlanModal';
+import { PLANS, getProductLimit } from '../../../utils/planManager';
 
 
 export default function ProductCatalogue() {
@@ -37,8 +40,10 @@ export default function ProductCatalogue() {
   const [activeFilter, setActiveFilter] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
   const { formatPrice } = useCurrency();
-
-
+  const [currentPlan, setCurrentPlan] = useState(PLANS.FREE);
+  const [subscription, setSubscription] = useState(null);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeReason, setUpgradeReason] = useState('team_limit');
 
   const {
     products,
@@ -50,7 +55,6 @@ export default function ProductCatalogue() {
     updateProduct,
     deleteProduct,
     refreshProducts,
-
   } = useOfflineProducts(storeId);
 
   const {
@@ -110,6 +114,48 @@ export default function ProductCatalogue() {
 
     return result;
   }, [products, searchQuery, activeFilter, sortBy]);
+
+  // Fetch plan
+  React.useEffect(() => {
+    const fetchPlan = async () => {
+      const ownerId = localStorage.getItem('owner_id');
+      if (ownerId) {
+        const { data: subResult } = await supabase
+          .rpc('get_owner_subscription', { p_owner_id: Number(ownerId) });
+        const sub = subResult?.[0];
+        setSubscription(sub || null);
+        if (sub) {
+          if (sub.status === 'active' || (sub.status === 'trialing' && sub.trial_end && new Date(sub.trial_end) > new Date())) {
+            setCurrentPlan(sub.plan_name || PLANS.BUSINESS);
+          } else {
+            setCurrentPlan(PLANS.FREE);
+          }
+        }
+      }
+    };
+    fetchPlan();
+  }, [storeId]);
+
+  const productLimit = getProductLimit(currentPlan, subscription);
+  const isLimitReached = products.length >= productLimit;
+
+  const handleAddClick = () => {
+    if (isLimitReached) {
+      setUpgradeReason('product_limit'); // Actually we need to update UpgradePlanModal to handle product_limit reason
+      setShowUpgradeModal(true);
+    } else {
+      setShowAddForm(true);
+    }
+  };
+
+  const handleCSVClick = () => {
+    if (isLimitReached) {
+      setUpgradeReason('product_limit');
+      setShowUpgradeModal(true);
+    } else {
+      setShowCSVModal(true);
+    }
+  };
 
   const handleCreateProduct = async (productData) => {
     try {
@@ -207,7 +253,20 @@ export default function ProductCatalogue() {
                     {isOnline ? 'Online' : 'Offline'}
                   </span>
                   <span className="text-slate-400">•</span>
-                  <span className="text-slate-500">{products.length} products</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className={`font-medium ${isLimitReached ? 'text-red-500' : 'text-slate-500'}`}>
+                      {products.length}
+                    </span>
+                    <span className="text-slate-400">/</span>
+                    <span className="text-slate-500">
+                      {productLimit === Infinity ? '∞' : productLimit} products
+                    </span>
+                    {isLimitReached && (
+                      <span className="bg-red-100 text-red-600 text-[10px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">
+                        Limit Reached
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -230,7 +289,7 @@ export default function ProductCatalogue() {
               </button>
 
               <button
-                onClick={() => setShowAddForm(true)}
+                onClick={handleAddClick}
                 className="flex items-center gap-2 px-4 py-2.5 bg-indigo-900 text-white rounded-xl font-medium shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 transition-all"
               >
                 <Plus className="w-4 h-4" />
@@ -273,7 +332,7 @@ export default function ProductCatalogue() {
 
             {/* CSV */}
             <button
-              onClick={() => setShowCSVModal(true)}
+              onClick={handleCSVClick}
               className="flex items-center gap-2 px-4 py-2.5 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl text-sm font-medium text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-900/50 transition-colors"
             >
               <Upload className="w-4 h-4" />
@@ -319,7 +378,7 @@ export default function ProductCatalogue() {
             </p>
             {!searchQuery && (
               <button
-                onClick={() => setShowAddForm(true)}
+                onClick={handleAddClick}
                 className="mt-6 flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-medium"
               >
                 <Plus className="w-4 h-4" />
@@ -399,6 +458,13 @@ export default function ProductCatalogue() {
           />
         )}
       </AnimatePresence>
+
+      <UpgradePlanModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        currentPlan={currentPlan}
+        reason={upgradeReason}
+      />
     </div>
   );
 }

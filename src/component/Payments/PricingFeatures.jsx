@@ -40,8 +40,8 @@ const features = {
     { text: 'Single-store team collaboration', included: true },
     { text: 'Multi-store management', included: false },
     { text: 'Advanced product insights', included: false },
-       { text: 'Priority onboarding', included: false },
-     { text: 'Access to a dedicted Warehouse', included: false },
+    { text: 'Priority onboarding', included: false },
+    { text: 'Access to a dedicted Warehouse', included: false },
   ],
   business: [
     { text: 'All Free and Premium Plan features', included: true },
@@ -51,7 +51,7 @@ const features = {
     { text: 'Dedicated account manager', included: true },
     { text: 'Priority Onboarding', included: true },
     { text: 'Priority onboarding', included: true },
-     { text: 'Access to a dedicted Warehouse', included: true },
+    { text: 'Access to a dedicted Warehouse', included: true },
   ],
 };
 
@@ -96,11 +96,28 @@ export default function SubscriptionPlansComponent() {
     const fetchPlans = async () => {
       const { data, error } = await supabase
         .from('subscription_plans')
-        .select('id, name, price, description');
+        .select('id, name, price, description')
+        .order('price', { ascending: true });
+
       if (error) {
         console.error('Error fetching plans:', error);
       } else {
-        setPlans(data);
+        // Deduplicate plans to ensure only one card per level is shown
+        const seenLevels = new Set();
+        const getLevel = (name) => {
+          const n = name?.toLowerCase() || '';
+          if (n.includes('business')) return 'business';
+          if (n.includes('premium')) return 'premium';
+          return 'free';
+        };
+
+        const uniquePlans = data.filter(plan => {
+          const level = getLevel(plan.name);
+          if (seenLevels.has(level)) return false;
+          seenLevels.add(level);
+          return true;
+        });
+        setPlans(uniquePlans);
       }
     };
     fetchPlans();
@@ -117,7 +134,7 @@ export default function SubscriptionPlansComponent() {
   const formatPrice = (price) => {
     const currencyConfig = currencies[selectedCurrency];
     if (price === 0) return 'Free';
-    
+
     try {
       return new Intl.NumberFormat(currencyConfig.locale, {
         style: 'currency',
@@ -188,7 +205,7 @@ export default function SubscriptionPlansComponent() {
           </motion.p>
 
           {/* Currency Selector */}
-          <motion.div 
+          <motion.div
             className="flex justify-center mt-6"
             variants={cardVariants}
           >
@@ -209,8 +226,8 @@ export default function SubscriptionPlansComponent() {
               {/* Currency Dropdown */}
               {showCurrencyMenu && (
                 <>
-                  <div 
-                    className="fixed inset-0 z-40" 
+                  <div
+                    className="fixed inset-0 z-40"
                     onClick={() => setShowCurrencyMenu(false)}
                   />
                   <motion.div
@@ -226,11 +243,10 @@ export default function SubscriptionPlansComponent() {
                             setSelectedCurrency(code);
                             setShowCurrencyMenu(false);
                           }}
-                          className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left transition-all ${
-                            selectedCurrency === code
-                              ? 'bg-indigo-600 text-white'
-                              : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                          }`}
+                          className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left transition-all ${selectedCurrency === code
+                            ? 'bg-indigo-600 text-white'
+                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                            }`}
                         >
                           <span className="text-sm font-medium">
                             {config.symbol} {code}
@@ -258,22 +274,27 @@ export default function SubscriptionPlansComponent() {
         {/* Plans Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
           {plans.map((plan) => {
-            const planKey = plan.name.toLowerCase().trim();
+            const getLevel = (name) => {
+              const n = name?.toLowerCase() || '';
+              if (n.includes('business')) return 'business';
+              if (n.includes('premium')) return 'premium';
+              return 'free';
+            };
+            const planKey = getLevel(plan.name);
             const isFree = plan.price === 0;
-            const isPremium = plan.name === 'Premium';
+            const isPremium = planKey === 'premium';
             const isExpanded = expandedPlans[plan.id] || false;
             const convertedPrice = convertPrice(plan.price);
 
             return (
               <motion.div
                 key={plan.id}
-                className={`relative bg-white dark:bg-gray-800 backdrop-blur-md rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 flex flex-col justify-between border-2 ${
-                  isPremium
-                    ? 'border-blue-500 dark:border-blue-400'
-                    : plan.name === 'Business'
+                className={`relative bg-white dark:bg-gray-800 backdrop-blur-md rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 flex flex-col justify-between border-2 ${isPremium
+                  ? 'border-blue-500 dark:border-blue-400'
+                  : planKey === 'business'
                     ? 'border-purple-500 dark:border-purple-400'
                     : 'border-green-500 dark:border-green-400'
-                }`}
+                  }`}
                 variants={cardVariants}
                 whileHover={{ scale: 1.03, y: -5 }}
               >
@@ -288,13 +309,12 @@ export default function SubscriptionPlansComponent() {
                 <div className="space-y-4">
                   {/* Plan Name */}
                   <h2
-                    className={`text-2xl font-bold capitalize ${
-                      isPremium
-                        ? 'text-blue-600 dark:text-blue-400'
-                        : plan.name === 'Business'
+                    className={`text-2xl font-bold capitalize ${isPremium
+                      ? 'text-blue-600 dark:text-blue-400'
+                      : planKey === 'business'
                         ? 'text-purple-700 dark:text-purple-400'
                         : 'text-green-600 dark:text-green-400'
-                    }`}
+                      }`}
                   >
                     {plan.name} Plan
                   </h2>
@@ -353,15 +373,14 @@ export default function SubscriptionPlansComponent() {
                 <motion.button
                   onClick={() => handleSubscribe(plan)}
                   disabled={isFree}
-                  className={`mt-6 w-full py-3 px-4 font-semibold rounded-xl transition-all duration-300 ${
-                    isFree
-                      ? 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-500 cursor-not-allowed'
-                      : isPremium
+                  className={`mt-6 w-full py-3 px-4 font-semibold rounded-xl transition-all duration-300 ${isFree
+                    ? 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-500 cursor-not-allowed'
+                    : isPremium
                       ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-blue-500/30'
-                      : plan.name === 'Business'
-                      ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800 shadow-lg hover:shadow-purple-500/30'
-                      : 'bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 shadow-lg hover:shadow-green-500/30'
-                  }`}
+                      : planKey === 'business'
+                        ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800 shadow-lg hover:shadow-purple-500/30'
+                        : 'bg-gradient-to-r from-green-600 to-green-700 text-white hover:from-green-700 hover:to-green-800 shadow-lg hover:shadow-green-500/30'
+                    }`}
                   whileHover={!isFree ? { scale: 1.02 } : {}}
                   whileTap={!isFree ? { scale: 0.98 } : {}}
                 >

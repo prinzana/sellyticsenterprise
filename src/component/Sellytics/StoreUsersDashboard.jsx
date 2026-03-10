@@ -9,12 +9,14 @@ import {
   FaBell,
   FaIdBadge,
   FaHome,
-  FaWarehouse ,
+  FaWarehouse,
   FaRobot,
   FaUserShield,
   FaMoneyBillWave,
 } from 'react-icons/fa';
 //import { Warehouse} from "lucide-react";
+import { setupRBAC } from '../../utils/planManager';
+import useStoreUsersAccess from './StoreUsers/useStoreUsersAccess';
 
 import StoreUsersTour from './StoreUsersTour';
 import StoreUserProfile from './Profile/StoreUsersProfile';
@@ -25,9 +27,16 @@ import AIpowerInsights from './AiInsights/AIpowerInsights';
 import AdminOps from './AdminOps/AdminOps';
 import Financials from '../Ops/Financials'
 import AlertDashboard from '../Sellytics/StoreSettings/AlertDashboard'
-import WarehouseHub   from '../Sellytics/Hub/WarehouseHub';
+import WarehouseHub from '../Sellytics/Hub/WarehouseHub';
 
 const StoreUsersDashboard = () => {
+  const {
+    userPlan,
+    registrationDate,
+    allowedFeatures,
+    isLoading: isLoadingAccess
+  } = useStoreUsersAccess();
+
   const [activeTab, setActiveTab] = useState('Fix Scan');
   const [darkMode, setDarkMode] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -55,6 +64,14 @@ const StoreUsersDashboard = () => {
 
   // Render main content based on active tab
   const renderContent = () => {
+    if (isLoadingAccess) {
+      return (
+        <div className="flex flex-col items-center justify-center h-64 text-slate-500">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
+          <p>Verifying Permissions...</p>
+        </div>
+      );
+    }
     switch (activeTab) {
       case 'AI Insights':
         return (
@@ -62,7 +79,7 @@ const StoreUsersDashboard = () => {
             <AIpowerInsights />
           </div>
         );
-      
+
       case 'Fix Scan':
         return (
           <div className="w-full bg-white dark:bg-gray-900 rounded-lg shadow p-4">
@@ -82,21 +99,21 @@ const StoreUsersDashboard = () => {
           </div>
         );
 
-         case 'Warehouse':
+      case 'Warehouse':
         return (
           <div className="w-full bg-white dark:bg-gray-900 rounded-lg shadow p-4">
             <WarehouseHub />
           </div>
         );
-        
 
- case 'Store Settings':
+
+      case 'Store Settings':
         return (
           <div className="w-full bg-white dark:bg-gray-900 rounded-lg shadow p-4">
             <AlertDashboard />
           </div>
         );
-        
+
       case 'Profile':
         return (
           <div className="w-full bg-white dark:bg-gray-700 rounded-lg shadow p-4">
@@ -109,7 +126,7 @@ const StoreUsersDashboard = () => {
             <Colleagues />
           </div>
         );
-     
+
       default:
         return (
           <div className="w-full bg-white dark:bg-gray-900 rounded-lg shadow p-4">
@@ -130,18 +147,23 @@ const StoreUsersDashboard = () => {
   };
 
   // Navigation items
-  const navItems = [
-    { name: 'Home', icon: FaHome, aria: 'Home: Go to the landing page', dataTour: 'home' },
-    //{ name: 'Flex Scan', icon: FaBarcode, aria: 'Flex Scan: Access your store management tools', dataTour: 'toolkits' },
-    { name: 'Fix Scan', icon: FaQrcode, aria: 'Fix Scan: Fixed barcode scanning', dataTour: 'fix-scan' },
-    { name: 'AI Insights', icon: FaRobot, aria: 'AI Insights: Access AI-powered insights', dataTour: 'ai-insights' },
-    { name: 'Admin Ops', icon: FaUserShield, aria: 'Admin Operations: Manage store operations', dataTour: 'admin-ops' },
-    { name: 'Warehouse', icon: FaWarehouse, aria: 'Admin Operations: Manage store operations', dataTour: 'admin-ops' },
-    { name: 'Financials', icon: FaMoneyBillWave, aria: 'Finances: See all your financial records', dataTour: 'finance' },
-    { name: 'Store Settings', icon: FaBell, aria: 'Notifications: Stay updated with store-related notifications', dataTour: 'notifications' },
-    { name: 'Colleagues', icon: FaIdBadge, aria: 'Colleagues: Manage your colleagues', dataTour: 'colleagues' },
-    { name: 'Profile', icon: FaUser, aria: 'Profile: View and edit your profile', dataTour: 'profile' },
+  const allNavItems = [
+    { name: 'Home', icon: FaHome, aria: 'Home: Go to the landing page', dataTour: 'home', feature: 'PUBLIC' },
+    { name: 'Fix Scan', icon: FaQrcode, aria: 'Fix Scan: Fixed barcode scanning', dataTour: 'fix-scan', feature: 'PUBLIC' },
+    { name: 'AI Insights', icon: FaRobot, aria: 'AI Insights: Access AI-powered insights', dataTour: 'ai-insights', feature: 'AI_INSIGHTS' },
+    { name: 'Admin Ops', icon: FaUserShield, aria: 'Admin Operations: Manage store operations', dataTour: 'admin-ops', feature: 'ADMIN_OPS' },
+    { name: 'Warehouse', icon: FaWarehouse, aria: 'Admin Operations: Manage store operations', dataTour: 'admin-ops', feature: 'WAREHOUSE' },
+    { name: 'Financials', icon: FaMoneyBillWave, aria: 'Finances: See all your financial records', dataTour: 'finance', feature: 'FINANCIAL_DASHBOARD' },
+    { name: 'Store Settings', icon: FaBell, aria: 'Notifications: Stay updated with store-related notifications', dataTour: 'notifications', feature: 'PUBLIC' },
+    { name: 'Colleagues', icon: FaIdBadge, aria: 'Colleagues: Manage your colleagues', dataTour: 'colleagues', feature: 'PUBLIC' },
+    { name: 'Profile', icon: FaUser, aria: 'Profile: View and edit your profile', dataTour: 'profile', feature: 'PUBLIC' },
   ];
+
+  // Apply RBAC filtering
+  const navItems = allNavItems.filter(item => {
+    if (item.feature === 'PUBLIC') return true;
+    return setupRBAC(item.feature, userPlan, registrationDate, allowedFeatures);
+  });
 
   // Toggle sidebar
   const toggleSidebar = () => {
@@ -151,7 +173,7 @@ const StoreUsersDashboard = () => {
   return (
     <div className="flex h-screen bg-gray-100 dark:bg-gray-900">
 
-       
+
 
       <StoreUsersTour
         isOpen={isTourOpen}
@@ -159,9 +181,8 @@ const StoreUsersDashboard = () => {
         setActiveTab={setActiveTab}
       />
       <aside
-        className={`fixed md:static top-0 left-0 h-full transition-all duration-300 bg-gray-100 dark:bg-gray-800 z-40 ${
-          sidebarOpen ? 'w-64' : 'w-0 md:w-16'
-        } ${sidebarOpen ? 'block' : 'hidden md:block'}`}
+        className={`fixed md:static top-0 left-0 h-full transition-all duration-300 bg-gray-100 dark:bg-gray-800 z-40 ${sidebarOpen ? 'w-64' : 'w-0 md:w-16'
+          } ${sidebarOpen ? 'block' : 'hidden md:block'}`}
       >
         <div className="p-4 md:p-4">
           <div className="flex items-center justify-between mb-4">
@@ -183,9 +204,8 @@ const StoreUsersDashboard = () => {
                   key={item.name}
                   data-tour={item.dataTour}
                   onClick={() => handleNavClick(item.name)}
-                  className={`flex items-center p-2 rounded cursor-pointer transition hover:bg-indigo-300 dark:hover:bg-indigo-600 ${
-                    activeTab === item.name ? 'bg-indigo-200 dark:bg-indigo-600' : ''
-                  }`}
+                  className={`flex items-center p-2 rounded cursor-pointer transition hover:bg-indigo-300 dark:hover:bg-indigo-600 ${activeTab === item.name ? 'bg-indigo-200 dark:bg-indigo-600' : ''
+                    }`}
                   aria-label={item.aria}
                 >
                   <item.icon
@@ -214,9 +234,8 @@ const StoreUsersDashboard = () => {
             />
             <div className="w-11 h-6 bg-indigo-800 dark:bg-gray-600 rounded-full transition-colors duration-300">
               <span
-                className={`absolute left-1 top-1 bg-white dark:bg-indigo-200 w-4 h-4 rounded-full transition-transform duration-300 ${
-                  darkMode ? 'translate-x-5' : ''
-                }`}
+                className={`absolute left-1 top-1 bg-white dark:bg-indigo-200 w-4 h-4 rounded-full transition-transform duration-300 ${darkMode ? 'translate-x-5' : ''
+                  }`}
               ></span>
             </div>
           </label>
@@ -225,18 +244,16 @@ const StoreUsersDashboard = () => {
 
       <button
         onClick={toggleSidebar}
-        className={`fixed top-4 md:top-4 transition-all duration-300 z-50 rounded-full p-2 bg-indigo-600 text-white shadow-lg hover:bg-indigo-700 md:block hidden ${
-          sidebarOpen ? 'left-64' : 'left-4'
-        }`}
+        className={`fixed top-4 md:top-4 transition-all duration-300 z-50 rounded-full p-2 bg-indigo-600 text-white shadow-lg hover:bg-indigo-700 md:block hidden ${sidebarOpen ? 'left-64' : 'left-4'
+          }`}
         aria-label={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
       >
         {sidebarOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
       </button>
 
       <div
-        className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${
-          sidebarOpen ? 'md:ml-64' : 'md:ml-0'
-        }`}
+        className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${sidebarOpen ? 'md:ml-64' : 'md:ml-0'
+          }`}
       >
         <header className="flex md:hidden items-center justify-between p-4 bg-white dark:bg-gray-800">
           <button
