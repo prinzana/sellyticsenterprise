@@ -25,7 +25,7 @@ import { useCurrency } from '../../context/currencyContext';
 import { useOfflineProducts } from './hooks/useOfflineProducts';
 import { useOfflineSync } from './hooks/useOfflineSync';
 import UpgradePlanModal from '../Shared/UpgradePlanModal';
-import { PLANS, getProductLimit } from '../../../utils/planManager';
+import { PLANS, getProductLimit, getEffectivePlan } from '../../../utils/planManager';
 
 
 export default function ProductCatalogue() {
@@ -119,18 +119,36 @@ export default function ProductCatalogue() {
   React.useEffect(() => {
     const fetchPlan = async () => {
       const ownerId = localStorage.getItem('owner_id');
-      if (ownerId) {
-        const { data: subResult } = await supabase
-          .rpc('get_owner_subscription', { p_owner_id: Number(ownerId) });
-        const sub = subResult?.[0];
-        setSubscription(sub || null);
-        if (sub) {
-          if (sub.status === 'active' || (sub.status === 'trialing' && sub.trial_end && new Date(sub.trial_end) > new Date())) {
-            setCurrentPlan(sub.plan_name || PLANS.BUSINESS);
-          } else {
-            setCurrentPlan(PLANS.FREE);
-          }
+      const storeIdLocal = localStorage.getItem('store_id');
+      
+      if (!storeIdLocal) return;
+
+      try {
+        // 1. Fetch store's base data for legacy trial calculation
+        const { data: storeData } = await supabase
+          .from('stores')
+          .select('plan, created_at')
+          .eq('id', storeIdLocal)
+          .single();
+
+        let sub = null;
+        if (ownerId) {
+          // 2. Fetch "real" subscription from DB
+          const { data: subResult } = await supabase
+            .rpc('get_owner_subscription', { p_owner_id: Number(ownerId) });
+          sub = subResult?.[0];
+          setSubscription(sub || null);
         }
+
+        // 3. Determine effective plan using centralized logic
+        const effective = getEffectivePlan(
+          storeData?.plan || PLANS.FREE,
+          sub || storeData?.created_at
+        );
+        
+        setCurrentPlan(effective);
+      } catch (err) {
+        console.error('Failed to fetch plan:', err);
       }
     };
     fetchPlan();

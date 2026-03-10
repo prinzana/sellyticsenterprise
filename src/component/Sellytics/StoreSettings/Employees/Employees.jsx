@@ -10,7 +10,7 @@ import { useInviteLink } from './useInviteLink';
 import TeamMemberCard from './TeamMemberCard';
 import InviteCard from './InviteCard';
 import NotificationBanner from './NotificationBanner';
-import { PLANS, getUserLimit } from '../../../../utils/planManager';
+import { PLANS, getUserLimit, getEffectivePlan } from '../../../../utils/planManager';
 import UpgradePlanModal from '../../Shared/UpgradePlanModal';
 
 const ROLES = [
@@ -73,34 +73,38 @@ export default function TeamManagementPage() {
     // Fetch plan via owner subscription
     const effectiveOwnerId = ownerId;
     let sub = null;
+    let storeBasePlan = PLANS.FREE;
+    let storeCreatedAt = null;
 
-    if (effectiveOwnerId) {
+    // 1. Fetch store's base data for legacy trial calculation
+    const { data: storeData } = await supabase
+      .from('stores')
+      .select('plan, created_at, owner_user_id')
+      .eq('id', storeId)
+      .maybeSingle();
+
+    if (storeData) {
+      storeBasePlan = storeData.plan || PLANS.FREE;
+      storeCreatedAt = storeData.created_at;
+    }
+
+    const targetOwnerId = effectiveOwnerId || storeData?.owner_user_id;
+
+    if (targetOwnerId) {
       const { data: subResult } = await supabase
-        .rpc('get_owner_subscription', { p_owner_id: Number(effectiveOwnerId) });
+        .rpc('get_owner_subscription', { p_owner_id: Number(targetOwnerId) });
       sub = subResult?.[0];
-    } else {
-      // No owner — try to get owner_user_id from stores table
-      const { data: storeData } = await supabase
-        .from('stores')
-        .select('owner_user_id')
-        .eq('id', storeId)
-        .maybeSingle();
-
-      if (storeData?.owner_user_id) {
-        const { data: subResult } = await supabase
-          .rpc('get_owner_subscription', { p_owner_id: storeData.owner_user_id });
-        sub = subResult?.[0];
-      }
     }
 
     setSubscription(sub || null);
-    if (sub) {
-      if (sub.status === 'active' || (sub.status === 'trialing' && sub.trial_end && new Date(sub.trial_end) > new Date())) {
-        setCurrentPlan(sub.plan_name || PLANS.BUSINESS);
-      } else {
-        setCurrentPlan(PLANS.FREE);
-      }
-    }
+    
+    // 2. Determine effective plan using centralized logic
+    const effective = getEffectivePlan(
+      storeBasePlan,
+      sub || storeCreatedAt
+    );
+    
+    setCurrentPlan(effective);
   }, [storeId, ownerId, notify]);
 
   useEffect(() => {

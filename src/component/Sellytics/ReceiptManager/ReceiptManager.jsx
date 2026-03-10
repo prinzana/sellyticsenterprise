@@ -8,7 +8,7 @@ import ReceiptCustomizer from './ReceiptCustomizer';
 import BulkDeleteConfirm from './BulkDeleteConfirm';
 import FilterPanel from './FilterPanel';
 import { supabase } from '../../../supabaseClient';
-import { PLANS } from '../../../utils/planManager';
+import { PLANS, getEffectivePlan } from '../../../utils/planManager';
 import UpgradePlanModal from '../Shared/UpgradePlanModal';
 
 export default function ReceiptManager() {
@@ -57,18 +57,32 @@ export default function ReceiptManager() {
   useEffect(() => {
     const fetchPlan = async () => {
       const ownerId = localStorage.getItem('owner_id');
-      if (ownerId) {
-        try {
-          const { data, error } = await supabase.rpc('get_owner_subscription', { p_owner_id: Number(ownerId) });
-          if (!error && data?.[0]) {
-            const sub = data[0];
-            if (sub.status === 'active' || (sub.status === 'trialing' && sub.trial_end && new Date(sub.trial_end) > new Date())) {
-              setCurrentPlan(sub.plan_name || PLANS.BUSINESS);
-            }
-          }
-        } catch (err) {
-          console.error('Plan fetch error:', err);
+      if (!storeId) return;
+
+      try {
+        // 1. Fetch store's base data for legacy trial calculation
+        const { data: storeData } = await supabase
+          .from('stores')
+          .select('plan, created_at')
+          .eq('id', storeId)
+          .single();
+
+        let sub = null;
+        if (ownerId) {
+          // 2. Fetch "real" subscription from DB
+          const { data: subResult } = await supabase.rpc('get_owner_subscription', { p_owner_id: Number(ownerId) });
+          sub = subResult?.[0];
         }
+
+        // 3. Determine effective plan using centralized logic
+        const effective = getEffectivePlan(
+          storeData?.plan || PLANS.FREE,
+          sub || storeData?.created_at
+        );
+        
+        setCurrentPlan(effective);
+      } catch (err) {
+        console.error('Plan fetch error:', err);
       }
     };
     fetchPlan();

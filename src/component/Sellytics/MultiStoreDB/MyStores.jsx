@@ -10,7 +10,7 @@ import {
 import { Phone, Mail, MapPin, AlertTriangle } from 'lucide-react';
 import AddStoreModal from './AddStoreModal';
 
-import { PLANS, getStoreLimit } from '../../../utils/planManager';
+import { PLANS, getStoreLimit, getEffectivePlan } from '../../../utils/planManager';
 
 export default function MyStores() {
   const navigate = useNavigate();
@@ -32,25 +32,37 @@ export default function MyStores() {
     }
     setLoading(true);
     try {
-      // Fetch owner name & subscription
+      // Fetch owner name, subscription & registration date
       const [ownerRes, subRes] = await Promise.all([
-        supabase.from('store_owners').select('full_name').eq('id', ownerId).single(),
+        supabase.from('store_owners').select('full_name, created_at').eq('id', ownerId).single(),
         supabase.rpc('get_owner_subscription', { p_owner_id: ownerId })
       ]);
 
       if (ownerRes.error) throw ownerRes.error;
       setOwnerName(ownerRes.data.full_name);
+      const ownerRegistrationDate = ownerRes.data.created_at;
 
       const subData = subRes.data?.[0];
       setSubscription(subData || null);
 
-      if (subData) {
-        if (subData.status === 'active' || (subData.status === 'trialing' && subData.trial_end && new Date(subData.trial_end) > new Date())) {
-          setCurrentPlan(subData.plan_name || PLANS.BUSINESS);
-        } else {
-          setCurrentPlan(PLANS.FREE);
-        }
-      }
+      // 1. Fetch any store from this owner to get a reference creation date if needed
+      const { data: storesData } = await supabase
+        .from('stores')
+        .select('id, plan, created_at')
+        .eq('owner_user_id', ownerId)
+        .order('created_at', { ascending: true })
+        .limit(1);
+
+      const oldestStore = storesData?.[0];
+
+      // 2. Determine effective plan using centralized logic
+      // Fallback order: Explicit Sub > Oldest Store Date > Owner Registration Date
+      const effective = getEffectivePlan(
+        oldestStore?.plan || PLANS.FREE,
+        subData || oldestStore?.created_at || ownerRegistrationDate
+      );
+      
+      setCurrentPlan(effective);
 
       // Fetch stores
       const { data, error: storesErr } = await supabase

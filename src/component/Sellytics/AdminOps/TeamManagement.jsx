@@ -6,7 +6,7 @@ import {
     Search, AlertTriangle, X, Eye
 } from 'lucide-react';
 import { FaStore } from 'react-icons/fa';
-import { PLANS, getUserLimit } from '../../../utils/planManager';
+import { PLANS, getUserLimit, getEffectivePlan } from '../../../utils/planManager';
 import UpgradePlanModal from '../Shared/UpgradePlanModal';
 
 const ROLES = [
@@ -68,7 +68,13 @@ export default function TeamManagement() {
             let storeList = [];
 
             if (ownerId) {
-                // Fetch subscription (also tells us the parent store)
+                // 1. Fetch store's base data for legacy trial calculation
+                const { data: storeData } = await supabase
+                    .from('stores')
+                    .select('plan, created_at')
+                    .eq('id', currentStoreId)
+                    .single();
+
                 const { data: subResult } = await supabase
                     .rpc('get_owner_subscription', { p_owner_id: Number(ownerId) });
 
@@ -78,14 +84,13 @@ export default function TeamManagement() {
                 const isParent = parentStoreId === Number(currentStoreId);
                 setIsParentStore(isParent);
 
-                // Set the plan from subscription
-                if (sub) {
-                    if (sub.status === 'active' || (sub.status === 'trialing' && sub.trial_end && new Date(sub.trial_end) > new Date())) {
-                        setCurrentPlan(sub.plan_name || PLANS.BUSINESS);
-                    } else {
-                        setCurrentPlan(PLANS.FREE);
-                    }
-                }
+                // 2. Determine effective plan using centralized logic
+                const effective = getEffectivePlan(
+                    storeData?.plan || PLANS.FREE,
+                    sub || storeData?.created_at
+                );
+                
+                setCurrentPlan(effective);
 
                 if (isParent) {
                     // Parent: fetch ALL stores for this owner

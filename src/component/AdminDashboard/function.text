@@ -1,0 +1,22 @@
+
+BEGIN
+    RETURN QUERY
+    SELECT 
+        sub.id,
+        sub.store_id,
+        sub.plan_name,
+        sub.status,
+        sub.trial_start,
+        sub.trial_end,
+        sub.is_trial,
+        COALESCE(p.max_users_per_store, 1) as max_users_per_store,
+        COALESCE(p.max_stores, 1) as max_stores,
+        COALESCE(p.max_products, 50) as max_products
+    FROM public.subscriptions sub
+    LEFT JOIN public.subscription_plans p ON LOWER(p.name) = LOWER(sub.plan_name)
+    WHERE sub.store_id IN (
+        SELECT s.id FROM public.stores s WHERE s.owner_user_id = p_owner_id
+    )
+    ORDER BY sub.created_at DESC
+    LIMIT 1;
+END;

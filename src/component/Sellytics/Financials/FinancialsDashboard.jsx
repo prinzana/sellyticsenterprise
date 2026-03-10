@@ -1,4 +1,4 @@
-import { supabase } from '../../../supabaseClient';
+
 import React, { useState, useEffect } from 'react';
 import {
   FaMoneyBillWave, FaMoneyCheckAlt, FaFileInvoiceDollar, FaClipboardList,
@@ -86,7 +86,9 @@ export default function Finance() {
     registrationDate,
     isLoading,
     errorMessage,
-    setErrorMessage
+    setErrorMessage,
+    allowedFeatures,
+    isParentStore
   } = useDashboardAccess();
 
   const [activeTool, setActiveTool] = useState(null);
@@ -94,45 +96,14 @@ export default function Finance() {
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    async function checkAuthorization() {
-      if (isLoading) return;
+    if (isLoading) return;
 
-      const storeId = localStorage.getItem('store_id');
-      const userId = localStorage.getItem('user_id');
-      const ownerId = localStorage.getItem('owner_id');
-
-      if (!storeId) return;
-
-      let isAuthorizedUser = false;
-
-      // Check role authorization
-      if (userId) {
-        const { data: storeUserRow } = await supabase
-          .from('store_users')
-          .select('role, store_id')
-          .eq('id', userId)
-          .maybeSingle();
-
-        if (storeUserRow && Number(storeUserRow.store_id) === Number(storeId)) {
-          const role = String(storeUserRow.role || '').toLowerCase();
-          if (['admin', 'account', 'manager'].includes(role)) isAuthorizedUser = true;
-        }
-      }
-
-      if (!isAuthorizedUser && (ownerId || userId)) {
-        const { data: storeByOwner } = await supabase
-          .from('stores')
-          .select('id')
-          .eq('id', storeId)
-          .eq('owner_user_id', ownerId || userId)
-          .maybeSingle();
-        if (storeByOwner) isAuthorizedUser = true;
-      }
-
-      setIsAuthorized(isAuthorizedUser);
-    }
-    checkAuthorization();
-  }, [isLoading]);
+    // AUTHORIZATION LOGIC:
+    // 1. Owners (Parent Store) always have access if the plan allows.
+    // 2. Others (Employees) only have access if the feature has been assigned to them.
+    const hasAssignment = allowedFeatures.includes('financial_dashboard');
+    setIsAuthorized(isParentStore || hasAssignment);
+  }, [isLoading, isParentStore, allowedFeatures]);
 
   const handleToolClick = (key) => {
     const tool = financeTools.find(t => t.key === key);

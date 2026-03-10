@@ -11,7 +11,7 @@ import {
   FaRobot,
   FaUserShield,
   FaMoneyBillWave,
-  FaLock
+
 } from 'react-icons/fa';
 import { Warehouse } from "lucide-react";
 import { supabase } from '../../supabaseClient';
@@ -43,7 +43,7 @@ const Dashboard = () => {
     isLoading: isLoadingAccess
   } = useStoreUsersAccess();
 
-  const [userRole, setUserRole] = useState(null);
+  const [, setUserRole] = useState(null);
   const [isLoadingRole, setIsLoadingRole] = useState(true);
 
   const navigate = useNavigate();
@@ -110,9 +110,6 @@ const Dashboard = () => {
     }
   };
 
-  // Define authorized roles for Financials (Internal sub-user logical check)
-  const financialRoles = ['admin', 'account', 'manager', 'md', 'ceo'];
-
   // All potential navigation items
   const allNavItems = [
     { name: 'Home', icon: FaHome, aria: 'Home', dataTour: 'home', feature: 'PUBLIC' },
@@ -131,10 +128,7 @@ const Dashboard = () => {
     // 1. Basic Public features
     if (item.feature === 'PUBLIC') return true;
 
-    // 2. Financials has an extra internal role check
-    if (item.name === 'Financials' && !financialRoles.includes(userRole)) return false;
-
-    // 3. Main RBAC check: Plan + User Feature Assignment
+    // 2. Main RBAC check: Plan + User Feature Assignment
     return setupRBAC(item.feature, userPlan, registrationDate, allowedFeatures);
   });
 
@@ -157,17 +151,6 @@ const Dashboard = () => {
         return <div className="w-full bg-white dark:bg-gray-900 rounded-lg shadow p-4"><StoreUsersDashboardFeatures /></div>;
 
       case 'Financials':
-        // Security Gate: Secondary check inside the render
-        if (!financialRoles.includes(userRole)) {
-          return (
-            <div className="flex flex-col items-center justify-center h-full p-10 bg-white dark:bg-gray-900 rounded-xl shadow-inner text-center">
-              <FaLock className="text-red-500 text-5xl mb-4" />
-              <h2 className="text-2xl font-bold dark:text-white">Restricted Access</h2>
-              <p className="text-gray-500 mt-2">Your role ({userRole}) does not have permission to view Financials.</p>
-              <button onClick={() => setActiveTab('Fix Scan')} className="mt-6 bg-indigo-600 text-white px-6 py-2 rounded-lg">Return to Dashboard</button>
-            </div>
-          );
-        }
         return <div className="w-full bg-white dark:bg-gray-700 rounded-lg shadow p-4"><FinancialsDashboard /></div>;
 
       case 'Admin Ops':

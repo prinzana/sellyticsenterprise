@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../../supabaseClient';
 import { featureKeyMapping } from './toolsConfig';
-import { getEffectivePlan, PLANS } from '../../../utils/planManager';
+import { PLANS, getEffectivePlan } from '../../../utils/planManager';
 
 /**
  * SINGLE SOURCE OF TRUTH for plan & feature access.
@@ -65,9 +65,30 @@ export default function useDashboardAccess() {
         // RPC returns an array, take the first row
         subData = Array.isArray(rpcResult) && rpcResult.length > 0 ? rpcResult[0] : null;
 
+        // NEW: If no subscription record found, fetch THIS plan's global defaults
+        // This makes the FREE plan dynamic according to the Admin Dashboard
+        if (!subData) {
+          const planToFetch = storeData.plan || PLANS.FREE;
+          const { data: planDefaults } = await supabase
+            .from('subscription_plans')
+            .select('*')
+            .ilike('name', planToFetch)
+            .single();
+
+          if (planDefaults) {
+            // Construct a "pseudo-subscription" object so features are inherited correctly
+            subData = {
+              ...planDefaults,
+              status: 'active', // Default to active for plan blueprint
+              plan_name: planDefaults.name,
+              is_default_plan: true
+            };
+          }
+        }
+
         // Determine if THIS store is the parent by checking if the subscription belongs to us
         if (subData) {
-          setIsParentStore(subData.store_id === Number(storeId));
+          setIsParentStore(subData.store_id === Number(storeId) || subData.is_default_plan);
         } else {
           // No subscription found — check if we're the oldest store manually
           setIsParentStore(!!localStorage.getItem('owner_id'));
@@ -78,38 +99,23 @@ export default function useDashboardAccess() {
 
       setSubscription(subData || null);
 
-      // ─── 3. Determine effective plan from subscription ────────
-      let effectivePlan = PLANS.FREE;
-
-      if (subData) {
-        // PAID & ACTIVE: subscription.status === 'active'
-        if (subData.status === 'active') {
-          effectivePlan = subData.plan_name || PLANS.BUSINESS;
-        }
-        // TRIAL: status === 'trialing' AND trial hasn't expired
-        else if (subData.status === 'trialing' && subData.trial_end) {
-          const trialEnd = new Date(subData.trial_end);
-          if (trialEnd > new Date()) {
-            effectivePlan = subData.plan_name || PLANS.BUSINESS;
-          } else {
-            // Trial expired → FREE
-            effectivePlan = PLANS.FREE;
-          }
-        }
-        // EXPIRED or CANCELED → FREE
-        else {
-          effectivePlan = PLANS.FREE;
-        }
-      } else {
-        // No subscription record at all → fallback to stores.plan + created_at (legacy)
-        effectivePlan = getEffectivePlan(storeData.plan || PLANS.FREE, storeData.created_at);
-      }
+      // ─── 3. Determine effective plan ────────
+      // Priority: 
+      // 1. "Real" subscription record from DB (paid or trialing)
+      // 2. Legacy 21-day trial (calculated from registration date)
+      // 3. Store's explicitly set plan or FREE
+      const effectivePlan = getEffectivePlan(
+        storeData.plan || PLANS.FREE,
+        (subData && !subData.is_default_plan) ? subData : storeData.created_at
+      );
 
       setUserPlan(effectivePlan);
-      setRegistrationDate(subData || storeData.created_at);
+      
+      // We use store's created_at for trial calculations unless there's a real sub record
+      setRegistrationDate((subData && !subData.is_default_plan) ? subData.created_at : storeData.created_at);
 
       // ─── 4. Premium access is now PURELY derived from effectivePlan ──
-      const hasPremiumAccess = effectivePlan === PLANS.PREMIUM || effectivePlan === PLANS.BUSINESS;
+      const hasPremiumAccess = effectivePlan !== PLANS.FREE || (subData && subData.price > 0);
 
       // ─── 5. Parse allowed_features ────────────────────────
       let features = [];
@@ -136,8 +142,8 @@ export default function useDashboardAccess() {
         }
       }
 
-      // ─── 6. Auto-inject features from server-side flags ────────
-      if (subData) {
+      // ─── 6. Auto-inject features from server-side flags or plan defaults ──
+      if (subData && !subData.is_default_plan) {
         const serverFeatures = [
           { flag: 'has_warehouse', key: 'warehouse' },
           { flag: 'has_admin_ops', key: 'admin_ops' },
@@ -151,10 +157,14 @@ export default function useDashboardAccess() {
             features.push(key);
           }
         });
-      } else if (effectivePlan === PLANS.BUSINESS) {
-        // Legacy fallback if no subscription record
-        if (!features.includes('warehouse')) features.push('warehouse');
-        if (!features.includes('admin_ops')) features.push('admin_ops');
+      }
+
+      // ─── 6b. Legacy/Trial fallback: Inject core Business features ────────
+      if (effectivePlan === PLANS.BUSINESS) {
+        const businessFeatures = ['warehouse', 'admin_ops', 'ai_insights', 'financial_dashboard'];
+        businessFeatures.forEach(key => {
+          if (!features.includes(key)) features.push(key);
+        });
       }
 
       // ─── 7. Set final state ──────────────────────────

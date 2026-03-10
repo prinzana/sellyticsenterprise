@@ -30,7 +30,7 @@ export const useStores = (ownerId) => {
     
     setStores(storeData || []);
     if (storeData.length === 0) {
-      toast.warn('No stores found for this owner.');
+      toast('No stores found for this owner.');
     } else if (!storeId && storeData.length > 0) {
       setStoreId(storeData[0].id);
       localStorage.setItem('store_id', storeData[0].id);
