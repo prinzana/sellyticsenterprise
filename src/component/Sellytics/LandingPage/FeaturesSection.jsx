@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  BarChart3,
+
   Bell,
   Package,
-  Sparkles,
+
   AlertTriangle,
   TrendingUp,
   Activity,
@@ -12,63 +12,72 @@ import {
   XCircle,
   Search,
   ScanLine,
+  Scan,
   Store,
   MapPin,
   Users,
   DollarSign,
-  TrendingDown
+  TrendingDown,
+  Wallet,
+  Receipt,
+  Clock,
+  Building2
 } from 'lucide-react';
 
 const features = [
   {
-    icon: BarChart3,
-    title: 'Sales Analytics',
-    description: 'Real-time insights with interactive charts showing sales trends, forecasts, and performance metrics.',
+    icon: TrendingUp,
+    title: 'Profit & Sales Analytics',
+    description: 'Understand your numbers like a pro. Track daily sales, profit margins, and inventory value in real-time.',
     gradient: 'from-blue-500 to-cyan-400',
     hasDemo: true,
     demoType: 'dashboard'
   },
   {
-    icon: Store,
-    title: 'Multi-Store Access',
-    description: 'Manage all your business in multiple locations from a single unified dashboard.',
+    icon: Wallet,
+    title: 'Debt & Credit Tracker',
+    description: 'Track debtors, manage part-payments, and never lose track of money owed to your business.',
+    gradient: 'from-emerald-500 to-teal-400',
+  },
+  {
+    icon: Receipt,
+    title: 'WhatsApp Receipts',
+    description: 'Save money on paper. Generate professional digital receipts and share them instantly via WhatsApp or Email.',
+    gradient: 'from-green-500 to-emerald-400',
+  },
+  {
+    icon: Clock,
+    title: 'Employee Time Sheets',
+    description: 'Monitor staff attendance and lateness effortlessly. Keep your team accountable from anywhere.',
+    gradient: 'from-orange-500 to-amber-400',
+  },
+  {
+    icon: Users,
+    title: 'Role-Based Access',
+    description: 'Assign specific roles to staff. Control exactly what managers, cashiers, and auditors can see and do.',
     gradient: 'from-violet-500 to-purple-400',
     hasDemo: true,
     demoType: 'multistore'
   },
   {
-    icon: Bell,
-    title: 'Smart Alerts',
-    description: 'Get instant notifications when stock runs low, sales spike, or anomalies are detected.',
-    gradient: 'from-orange-500 to-amber-400',
-    hasDemo: true,
-    demoType: 'alerts'
-  },
-  {
-    icon: Package,
-    title: 'Inventory Control',
-    description: 'Track every product with precision. Know exactly what you have, where it is, and when to restock.',
-    gradient: 'from-green-500 to-emerald-400',
-  },
-  {
-    icon: Sparkles,
-    title: 'AI Recommendations',
-    description: 'Let AI suggest optimal restock amounts, pricing strategies, and inventory decisions.',
-    gradient: 'from-purple-500 to-pink-400',
-  },
-  {
     icon: AlertTriangle,
-    title: 'Anomaly Detection',
-    description: 'Catch unusual patterns instantly. Identify errors, fraud attempts, or suspicious activities.',
+    title: 'Theft & Audit Tool',
+    description: 'Reconcile stock and check for theft instantly. identify discrepancies and unusual activity in seconds.',
     gradient: 'from-red-500 to-rose-400',
-  },
-  {
-    icon: ScanLine,
-    title: 'Store Audit Tool',
-    description: 'Scan and verify your entire inventory. Quickly identify discrepancies and missing items.',
-    gradient: 'from-indigo-500 to-violet-400',
     hasDemo: true,
     demoType: 'audit'
+  },
+  {
+    icon: Scan,
+    title: 'Dual Barcode Scanning',
+    description: 'Onboard products at the speed of light. Use your phone camera or plug in an external hardware scanner for high-volume operations.',
+    gradient: 'from-cyan-500 to-blue-400',
+  },
+  {
+    icon: Building2,
+    title: 'Warehouse Monetization',
+    description: 'Turn your empty store shelves or backroom into extra cash by listing warehouse space for others.',
+    gradient: 'from-indigo-500 to-violet-400',
   }
 ];
 
@@ -224,8 +233,8 @@ const MultiStoreDemo = () => {
                 </div>
               </div>
               <div className={`px-2 py-1 rounded-full text-xs font-medium ${store.status === 'active'
-                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
-                  : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
+                ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                : 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
                 }`}>
                 {store.status === 'active' ? '● Active' : '⚠ Warning'}
               </div>
@@ -265,10 +274,10 @@ const MultiStoreDemo = () => {
               <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
                 <motion.div
                   className={`h-full rounded-full ${store.performance >= 85
-                      ? 'bg-gradient-to-r from-emerald-500 to-green-400'
-                      : store.performance >= 75
-                        ? 'bg-gradient-to-r from-violet-500 to-purple-400'
-                        : 'bg-gradient-to-r from-amber-500 to-orange-400'
+                    ? 'bg-gradient-to-r from-emerald-500 to-green-400'
+                    : store.performance >= 75
+                      ? 'bg-gradient-to-r from-violet-500 to-purple-400'
+                      : 'bg-gradient-to-r from-amber-500 to-orange-400'
                     }`}
                   initial={{ width: 0 }}
                   animate={{ width: `${store.performance}%` }}
@@ -506,8 +515,8 @@ export default function FeaturesSection() {
                 key={type}
                 onClick={() => setActiveDemo(activeDemo === type ? null : type)}
                 className={`px-4 sm:px-6 py-2.5 sm:py-3 rounded-full text-sm font-medium transition-all duration-300 ${activeDemo === type
-                    ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/25'
-                    : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/10'
+                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/25'
+                  : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/10'
                   }`}
               >
                 {type === 'dashboard' && '📊 Dashboard'}

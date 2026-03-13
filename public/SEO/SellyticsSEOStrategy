@@ -1,4 +1,5 @@
 Sellytics SEO Strategy & Google Search Console Keywords
+Updated: March 13, 2026 (Competitor Analysis & Niche Gap Integration)
 IMPORTANT
 
 Live URL: https://sellyticshq.com/ Target Markets: Nigeria, Africa, Emerging Markets, Global SMBs
@@ -15,32 +16,52 @@ These are the main keywords to add in Google Search Console and optimize for:
 6	inventory management app Nigeria	Local-Commercial	Medium	⭐⭐⭐
 7	business management software Africa	Commercial	Medium	⭐⭐⭐
 8	offline POS system	Commercial	Medium	⭐⭐⭐
-9	multi-store inventory management	Commercial	Medium	⭐⭐⭐
-10	retail analytics software	Commercial	Medium	⭐⭐⭐
+9	preventing retail theft software	Problem-Solver	High	⭐⭐⭐
+10	debtor tracking app Nigeria	Commercial	High	⭐⭐⭐
+11  WhatsApp receipt generator	Productivity	High	⭐⭐⭐
+12  multi-store staff role management	Commercial	Medium	⭐⭐⭐
 🔑 Secondary Keywords (Medium Priority)
 #	Keyword	Category
 11	stock management app	Product
 12	inventory tracking app for shops	Product
 13	best inventory app for retail stores	Product
 14	mobile inventory management	Product
-15	sales analytics dashboard	Feature
+15	barcode scanning on mobile	Feature
 16	smart inventory alerts	Feature
 17	AI-powered inventory management	Feature
-18	store audit tool	Feature
+18	stock audit software	Feature
 19	expense tracking for business	Feature
 20	receipt generator for business	Feature
-🌍 Geo-Targeted Keywords (Nigeria & Africa)
-#	Keyword	Region
-21	inventory management app Lagos	Lagos
-22	POS software Nigeria	Nigeria
-23	best business app Nigeria	Nigeria
-24	retail management software Africa	Africa
-25	stock management app Nigeria	Nigeria
-26	sales tracking app Africa	Africa
-27	inventory app for market traders Nigeria	Nigeria
-28	business analytics software Nigeria	Nigeria
-29	offline business app Africa	Africa
-30	shop management app Nigeria	Nigeria
+21	market vendor stock tracker	Niche
+22  data-saving inventory apps	USP
+23  preventing stock-outs	Pain Point
+24  daily sales overview app	Feature
+25  Naira inventory management	Local
+## 💸 Financial & Debt Management
+#	Keyword	Target Pain Point
+26	track credit sales and part payments	Cash Flow
+27	simplified business accounting tool	Literacy Gap
+28	profit and loss tracker for shops	Profitability
+29	inventory worth calculator	Asset Value
+30	Naira business reconciliation tool	Localization
+
+## 🛡️ Loss Prevention & Audit
+#	Keyword	Category
+31	detecting shop theft software	Security
+32	inventory audit for retail stores	Operations
+33	stock reconciliation app Nigeria	Efficiency
+34	warehouse space monetization tool	Extra Income (Unique!)
+
+## 👥 Workforce & Store Management
+#	Keyword	Category
+35	employee time sheet monitor	HR
+36	tracking staff lateness app	HR
+37	multi-outlet retail dashboard	Scaling
+38	staff role-based access control	Security
+39	digital receipts for WhatsApp/Email	Customer UX
+40  offline sales tracking for staff	Reliability
+41  external barcode scanner support	Hardware
+42  fast product onboarding software	Speed
 🏪 Industry/Use-Case Keywords
 #	Keyword	Use Case
 31	phone shop inventory management	Electronics Retail
@@ -67,11 +88,23 @@ These are the main keywords to add in Google Search Console and optimize for:
 50	affordable inventory software for African businesses	Blog
 🔍 Competitor Comparison Keywords
 #	Keyword
-51	sellytics vs zoho inventory
-52	sellytics vs square POS
-53	sellytics vs loyverse
-54	sellytics vs stockcount
-55	best inventory app alternative to excel
+## ⚔️ Competitor Landscape
+| Competitor | Core Value Prop | Target | Gap for Sellytics |
+| :--- | :--- | :--- | :--- |
+| **Bumpa** | Social commerce / Web builder | Social sellers | Selltyics wins on **offline-first & stock auditing** |
+| **Loystar** | Loyalty & CRM | Returning customers | Sellytics wins on **utility & low-bandwidth** |
+| **TracePOS** | SME management / Reports | Local SMEs | Sellytics wins on **modern mobile UX & 2G speed** |
+| **Kyte** | Mobile agility / Catalogs | Mobile sellers | Sellytics wins on **local context & market-vendor focus** |
+
+## 🔍 Comparison & "Vs" Keywords
+Target these in blog headers or dedicated comparison pages:
+51	Sellytics vs Bumpa
+52	Sellytics vs Loystar
+53	Sellytics vs TracePOS
+54	Sellytics vs Kyte
+55	best inventory app alternative to Excel Nigeria
+56  Sellytics vs Odoo for African retail
+57  STOCKSAVI vs Sellytics comparison
 📋 Google Search Console Setup Checklist
 Step 1: Verify Site Ownership
 Go to Google Search Console

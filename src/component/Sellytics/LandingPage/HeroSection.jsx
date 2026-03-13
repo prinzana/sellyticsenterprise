@@ -75,11 +75,11 @@ export default function HeroSection() {
             className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-4 sm:mb-6"
           >
             <span className="bg-gradient-to-r from-white via-white to-slate-400 bg-clip-text text-transparent">
-              Inventory Management & Sales Tracking
+              Stop Theft. Track Debtors.
             </span>
             <br />
             <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-              Built for Modern Retail Businesses
+              Grow Your Profit with Sellytics
             </span>
           </motion.h1>
 
@@ -88,10 +88,11 @@ export default function HeroSection() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="max-w-2xl mx-auto text-base sm:text-lg md:text-xl text-slate-400 mb-8 sm:mb-10 px-4"
+            className="max-w-3xl mx-auto text-base sm:text-lg md:text-xl text-slate-400 mb-8 sm:mb-10 px-4 leading-relaxed"
           >
-            <span className="text-white font-semibold">Mobile-first. Offline-ready.</span> The best inventory management software for retail businesses.
-            Manage stock, track sales, generate receipts, and get AI-powered insights — even without internet. Works perfectly on 2G/3G networks.
+            The #1 <span className="text-white font-semibold">Offline-First</span> management app for retailers in Nigeria. 
+            Audit your store to prevent theft, track debtors for credit sales, and assign staff roles across multiple locations — 
+            <span className="text-indigo-400 font-semibold"> all without needing reliable internet.</span>
           </motion.p>
 
           {/* CTA Buttons */}

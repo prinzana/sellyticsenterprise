@@ -2,6 +2,7 @@ import React from 'react';
 import HeroSection from './HeroSection';
 import OfflineFeatures from './OfflineFeatures';
 import FeaturesSection from './FeaturesSection';
+import SolutionClusters from './SolutionClusters';
 import HowItWorksSection from './HowItWorksSection';
 import UseCasesSection from './UseCasesSection';
 //import TeamSection from './TeamSection';
@@ -26,6 +27,7 @@ export default function LandingPage() {
         <OfflineFeatures />
         <FeatureScreens />
         <FeaturesSection />
+        <SolutionClusters />
         <MockupScreens />
         {/*<WarehouseCTASection/> 
         {/*<TeamSection>*/}
