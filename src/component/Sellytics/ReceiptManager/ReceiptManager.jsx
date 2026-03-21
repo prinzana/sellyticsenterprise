@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Trash2, Loader2, FileText } from 'lucide-react';
+import { Loader2, FileText } from 'lucide-react';
 import useReceiptManager from './useReceiptManager';
 import useReceiptCustomization from './useReceiptCustomization';
 import SaleGroupsList from './SaleGroupsList';
@@ -7,9 +7,11 @@ import ReceiptModal from './ReceiptModal';
 import ReceiptCustomizer from './ReceiptCustomizer';
 import BulkDeleteConfirm from './BulkDeleteConfirm';
 import FilterPanel from './FilterPanel';
+import ReceiptEditModal from './ReceiptEditModal';
 import { supabase } from '../../../supabaseClient';
 import { PLANS, getEffectivePlan } from '../../../utils/planManager';
 import UpgradePlanModal from '../Shared/UpgradePlanModal';
+import SearchInput from '../ui/SearchInput';
 
 export default function ReceiptManager() {
   const [storeId, setStoreId] = useState(null);
@@ -19,6 +21,7 @@ export default function ReceiptManager() {
   const [currentPlan, setCurrentPlan] = useState(PLANS.FREE);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [upgradeReason, setUpgradeReason] = useState('feature_locked');
+  const [isEditingDirectly, setIsEditingDirectly] = useState(false);
 
   const {
     store,
@@ -79,7 +82,7 @@ export default function ReceiptManager() {
           storeData?.plan || PLANS.FREE,
           sub || storeData?.created_at
         );
-        
+
         setCurrentPlan(effective);
       } catch (err) {
         console.error('Plan fetch error:', err);
@@ -114,6 +117,15 @@ export default function ReceiptManager() {
     setShowBulkDeleteModal(false);
   };
 
+  const handleDirectEdit = async (group) => {
+    if (currentPlan === 'FREE') {
+      handleApplyLock('feature_locked');
+      return;
+    }
+    setIsEditingDirectly(true);
+    await openReceiptModal(group);
+  };
+
   const productGroups = selectedSaleGroup ? getProductGroups(selectedSaleGroup) : [];
 
   if (loading) {
@@ -129,53 +141,27 @@ export default function ReceiptManager() {
 
   return (
     <>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-0 md:p-8">
-        <div className="max-w-7xl mx-auto space-y-6">
-          {/* Header */}
-          <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-lg p-6 md:p-8 border-2 border-slate-200 dark:border-slate-700">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900/50 p-4 sm:p-6 lg:p-8">
+        <div className="max-w-6xl mx-auto space-y-8">
+          {/* Header & Search Zone */}
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
               <div>
-                <h1 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-2">
+                <h1 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
                   Receipt Manager
                 </h1>
-                <p className="text-slate-600 dark:text-slate-400">
-                  {store?.shop_name || 'Loading store...'}
+                <p className="text-slate-500 dark:text-slate-400 font-medium mt-1">
+                  {store?.shop_name || 'Loading store details...'}
                 </p>
               </div>
-
-              <div className="flex items-center gap-3">
-                {selectedIds.length > 0 && canDelete && (
-                  <button
-                    onClick={() => {
-                      if (currentPlan === PLANS.FREE) handleApplyLock('feature_locked');
-                      else setShowBulkDeleteModal(true);
-                    }}
-                    className="flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white font-semibold transition shadow-lg shadow-red-500/30"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                    Delete {selectedIds.length}
-                    {currentPlan === PLANS.FREE && (
-                      <svg className="w-3 h-3 ml-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                      </svg>
-                    )}
-                  </button>
-                )}
-              </div>
             </div>
 
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search by sale ID, amount, payment method..."
-                className="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-slate-900 dark:text-white placeholder:text-slate-400"
-              />
-            </div>
+            <SearchInput
+              value={searchTerm}
+              onChange={setSearchTerm}
+              placeholder="Search by sale ID, amount, payment method..."
+              containerClassName="w-full"
+            />
           </div>
 
           <FilterPanel
@@ -193,36 +179,45 @@ export default function ReceiptManager() {
           />
 
           {filteredSaleGroups.length > 0 ? (
-            <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-lg p-6 border-2 border-slate-200 dark:border-slate-700">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
+            <div className="space-y-6">
+              <div className="flex items-center gap-3 px-1 sm:px-0">
+                <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-indigo-200 dark:shadow-none shadow-lg">
                   <FileText className="w-5 h-5 text-white" />
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-slate-900 dark:text-white">
                     Sales & Receipts
                   </h2>
-                  <p className="text-sm text-slate-600 dark:text-slate-400">
-                    {filteredSaleGroups.length} sale{filteredSaleGroups.length !== 1 ? 's' : ''} found
+                  <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400 tracking-wider uppercase">
+                    {filteredSaleGroups.length} sale{filteredSaleGroups.length !== 1 ? 's' : ''} recorded
                   </p>
                 </div>
               </div>
 
-              <SaleGroupsList
-                saleGroups={filteredSaleGroups}
-                selectedGroup={selectedSaleGroup}
-                onSelectGroup={openReceiptModal}
-                canDelete={canDelete}
-                selectedIds={selectedIds}
-                onToggleSelect={handleToggleSelect}
-                onToggleSelectAll={handleToggleSelectAll}
-                currentPage={currentPage}
-                onPageChange={setCurrentPage}
-                itemsPerPage={20}
-              />
+              <div className="bg-white dark:bg-slate-800 sm:rounded-2xl border-y sm:border border-slate-200 dark:border-slate-700 shadow-sm -mx-4 sm:mx-0 p-4 sm:p-6 overflow-hidden">
+                <SaleGroupsList
+                  saleGroups={filteredSaleGroups}
+                  selectedGroup={selectedSaleGroup}
+                  onSelectGroup={openReceiptModal}
+                  canDelete={canDelete}
+                  selectedIds={selectedIds}
+                  onToggleSelect={handleToggleSelect}
+                  onToggleSelectAll={handleToggleSelectAll}
+                  currentPage={currentPage}
+                  onPageChange={setCurrentPage}
+                  itemsPerPage={20}
+                  onEditGroup={handleDirectEdit}
+                  currentPlan={currentPlan}
+                  onLock={handleApplyLock}
+                  onBulkDelete={() => {
+                    if (currentPlan === PLANS.FREE) handleApplyLock('feature_locked');
+                    else setShowBulkDeleteModal(true);
+                  }}
+                />
+              </div>
             </div>
           ) : (
-            <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-lg p-12 text-center border-2 border-slate-200 dark:border-slate-700">
+            <div className="bg-white dark:bg-slate-800 sm:rounded-2xl p-12 text-center border-y sm:border border-slate-200 dark:border-slate-700 shadow-sm -mx-4 sm:mx-0">
               <FileText className="w-20 h-20 mx-auto mb-4 text-slate-300 dark:text-slate-600" />
               <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
                 No Sales Found
@@ -236,7 +231,7 @@ export default function ReceiptManager() {
       </div>
 
       <ReceiptModal
-        isOpen={!!selectedReceipt}
+        isOpen={!!selectedReceipt && !isEditingDirectly}
         onClose={closeReceiptModal}
         receipt={selectedReceipt}
         saleGroup={selectedSaleGroup}
@@ -249,6 +244,24 @@ export default function ReceiptManager() {
         currentPlan={currentPlan}
         onLock={handleApplyLock}
       />
+
+      {isEditingDirectly && selectedReceipt && (
+        <ReceiptEditModal
+          isOpen={isEditingDirectly}
+          onClose={() => {
+            setIsEditingDirectly(false);
+            closeReceiptModal();
+          }}
+          receipt={selectedReceipt}
+          onSave={async (receiptId, updates) => {
+            const success = await updateReceipt(receiptId, updates);
+            if (success) {
+              setIsEditingDirectly(false);
+              closeReceiptModal();
+            }
+          }}
+        />
+      )}
 
       <BulkDeleteConfirm
         isOpen={showBulkDeleteModal}

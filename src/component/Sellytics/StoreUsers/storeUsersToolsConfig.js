@@ -135,6 +135,8 @@ export const featureKeyMapping = {
   'returned items': 'returns',
 
   // Financial
+  'financials': 'financial_dashboard',
+  'financial dashboard': 'financial_dashboard',
   'expenses': 'expenses',
   'expenses tracker': 'expenses',
   'unpaid supplies': 'unpaid supplies',

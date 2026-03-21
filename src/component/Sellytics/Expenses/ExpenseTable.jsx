@@ -23,7 +23,7 @@ export default function ExpenseTable({ expenses, onView, onEdit, onDelete }) {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="-mx-4 sm:mx-0 flex flex-col border-y border-slate-200 dark:border-slate-800 sm:border-y-0 sm:space-y-4 pb-4 sm:pb-0 transition-all">
       {expenses.map((expense) => {
         const date = expense.expense_date
           ? new Date(expense.expense_date).toLocaleDateString(undefined, {
@@ -47,55 +47,50 @@ export default function ExpenseTable({ expenses, onView, onEdit, onDelete }) {
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="relative p-5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 hover:shadow-lg transition-shadow duration-300"
+            className="relative p-3.5 sm:p-5 bg-white dark:bg-slate-800 rounded-none sm:rounded-2xl border-b border-x-0 sm:border border-slate-100 dark:border-slate-700 sm:border-slate-200 transition-all duration-300 sm:hover:shadow-lg w-full"
           >
-            {/* Main Content: Left + Right */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-              {/* Left: Icon + Details */}
-              <div className="flex items-start sm:items-center gap-4 flex-1 min-w-0 pr-12 sm:pr-0">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-indigo-100 dark:bg-indigo-900/30">
-                  <DollarSign className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
-                </div>
-
-                <div className="min-w-0">
-                  <h3 className="font-semibold text-lg text-slate-900 dark:text-white truncate">
-                    {expense.category || 'Uncategorized'}
-                  </h3>
-                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                    {expense.description || 'No description'}
-                  </p>
-                </div>
+            {/* Main Content */}
+            <div className="flex items-center gap-3 sm:gap-5 pr-[3.5rem] sm:pr-0">
+              {/* Left: Icon */}
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-indigo-50 dark:bg-indigo-900/30">
+                <DollarSign className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600 dark:text-indigo-400" />
               </div>
 
-              {/* Right: Amount, Date + Actions (desktop) */}
-              <div className="flex items-center gap-8">
-                <div className="flex flex-col items-end gap-2 text-right">
-                  <span className="text-xs text-slate-500 dark:text-slate-400">
-                    Amount
-                  </span>
-                  <p className="font-semibold text-lg text-red-600 dark:text-red-400">
-                    {preferredCurrency.symbol}{formattedAmount}
-                  </p>
-                  <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                    <Calendar className="w-4 h-4" />
-                    <span>{date}</span>
-                  </div>
-                </div>
+              {/* Middle: Content */}
+              <div className="flex-1 min-w-0 flex flex-col justify-center gap-1">
+                 <div className="flex items-center justify-between gap-2 w-full">
+                   <h3 className="font-bold text-[13px] sm:text-lg text-slate-900 dark:text-white truncate">
+                     {expense.category || 'Uncategorized'}
+                   </h3>
+                   <span className="font-black text-[13px] sm:text-lg text-red-600 dark:text-red-400 flex-shrink-0">
+                     {preferredCurrency.symbol}{formattedAmount}
+                   </span>
+                 </div>
+                 
+                 <div className="flex items-center justify-between gap-2 w-full">
+                   <p className="text-[11px] sm:text-sm text-slate-500 dark:text-slate-400 truncate font-medium">
+                     {expense.description || 'No description'}
+                   </p>
+                   <div className="flex items-center gap-1 text-[10px] sm:text-sm text-slate-500 dark:text-slate-400 flex-shrink-0 font-medium">
+                     <Calendar className="w-3 h-3 sm:w-4 sm:h-4" />
+                     <span>{date}</span>
+                   </div>
+                 </div>
+              </div>
 
-                {/* Actions Menu - Hidden on mobile, visible & spaced on desktop */}
-                <div className="hidden sm:block">
-                  <ExpenseActions
-                    expense={expense}
-                    onView={onView}
-                    onEdit={onEdit}
-                    onDelete={onDelete}
-                  />
-                </div>
+              {/* Desktop Actions */}
+              <div className="hidden sm:block ml-4 flex-shrink-0">
+                <ExpenseActions
+                  expense={expense}
+                  onView={onView}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
+                />
               </div>
             </div>
 
-            {/* Actions Menu - Visible only on mobile, absolute top-right */}
-            <div className="absolute top-4 right-4 sm:hidden">
+            {/* Mobile Actions Menu - absolute top-right aligned perfectly to center */}
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 sm:hidden">
               <ExpenseActions
                 expense={expense}
                 onView={onView}

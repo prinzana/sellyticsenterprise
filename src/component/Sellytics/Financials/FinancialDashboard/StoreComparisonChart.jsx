@@ -54,7 +54,7 @@ export default function StoreComparisonChart({ comparisonChartData, comparisonMe
         titleFont: { size: 14 },
         bodyFont: { size: 13 },
         callbacks: {
-          label: function(context) {
+          label: function (context) {
             if (comparisonMetric === 'profitMargin') {
               return `${context.label}: ${context.parsed.y}%`;
             }
@@ -70,6 +70,13 @@ export default function StoreComparisonChart({ comparisonChartData, comparisonMe
         ticks: {
           font: { size: 11 },
           color: '#64748b',
+          callback: function(value) {
+            if (comparisonMetric === 'profitMargin') return value + '%';
+            if (Math.abs(value) >= 1e9) return (value / 1e9).toFixed(1).replace(/\.0$/, '') + 'B';
+            if (Math.abs(value) >= 1e6) return (value / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
+            if (Math.abs(value) >= 1e3) return (value / 1e3).toFixed(1).replace(/\.0$/, '') + 'K';
+            return value;
+          },
         },
       },
       x: {

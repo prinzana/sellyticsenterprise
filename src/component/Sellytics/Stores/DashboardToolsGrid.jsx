@@ -20,6 +20,7 @@ export default function DashboardToolsGrid({
   handleToolClick,
   allowedFeatures,
   isPremium,
+  userPlan,
 }) {
   return (
     <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
@@ -68,7 +69,7 @@ export default function DashboardToolsGrid({
                 Account
               </p>
               <p className="text-sm sm:text-base font-bold text-slate-900 dark:text-white truncate">
-                {isPremium ? 'Premium' : 'Free'}
+                {userPlan === 'BUSINESS' ? 'Business Access' : isPremium ? 'Premium Access' : 'Free Access'}
               </p>
             </div>
             <div className="w-9 h-9 sm:w-12 sm:h-12 bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950 dark:to-amber-900 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">

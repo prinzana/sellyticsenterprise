@@ -48,13 +48,13 @@ const InventoryCard = forwardRef(({
       whileTap={{ scale: 0.99 }}
       onClick={onClick}
       className={`
-        relative p-2.5 sm:p-3.5 bg-white dark:bg-slate-800 rounded-lg border cursor-pointer active:scale-95
-        transition-all duration-200 hover:shadow-lg w-full
+        relative p-3.5 sm:p-5 bg-white dark:bg-slate-800 rounded-none sm:rounded-2xl border-b border-x-0 sm:border cursor-pointer active:scale-95
+        transition-all duration-200 sm:hover:shadow-lg w-full
         ${displayOutOfStock
           ? 'border-red-200 dark:border-red-800 bg-red-50/50 dark:bg-red-900/10'
           : displayLowStock
             ? 'border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-900/10'
-            : 'border-slate-200 dark:border-slate-700'
+            : 'border-slate-100 dark:border-slate-800 sm:border-slate-200 dark:sm:border-slate-700'
         }
       `}
     >

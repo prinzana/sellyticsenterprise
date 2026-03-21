@@ -117,173 +117,143 @@ const ProductCard = forwardRef(function ProductCard(
       transition={{ delay: index * 0.02 }}
       onClick={canView ? onView : undefined}
       className={`
-        relative w-full bg-white dark:bg-slate-800 
-        rounded-xl sm:rounded-2xl border border-slate-200 dark:border-slate-700
-        overflow-hidden transition-all duration-200
-        ${canView ? 'cursor-pointer hover:shadow-md dark:hover:shadow-lg hover:border-indigo-300 dark:hover:border-indigo-600 active:scale-95' : 'cursor-not-allowed opacity-60'}
+        relative w-full bg-white dark:bg-slate-900 
+        rounded-none sm:rounded-xl border-y sm:border border-slate-200 dark:border-slate-800
+        transition-all duration-200 
+        ${canView ? 'cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-700 active:scale-[0.99] sm:active:scale-[0.99] active:scale-100' : 'cursor-not-allowed opacity-60'}
       `}
     >
       {/* Pending Badge */}
       {isPending && (
-        <div className="absolute top-2.5 right-2.5 z-20 px-2 py-1 sm:px-3 sm:py-1.5 rounded-full bg-amber-500 text-white text-xs sm:text-xs font-semibold flex items-center gap-1 shadow-lg">
-          <Clock className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
-          <span className="hidden xs:inline">Pending</span>
+        <div className="absolute top-0 right-0 z-20 px-2 py-0.5 rounded-bl-lg rounded-tr-xl bg-amber-500 text-white text-[10px] font-bold uppercase tracking-wide flex items-center gap-1">
+          <Clock className="w-3 h-3 flex-shrink-0" />
+          <span>Pending</span>
         </div>
       )}
 
       {/* Offline Indicator */}
       {isOffline && isPending && (
-        <div className="absolute top-2.5 left-2.5 z-20 w-5 h-5 sm:w-6 sm:h-6 bg-amber-500 rounded-full flex items-center justify-center shadow-lg flex-shrink-0">
-          <WifiOff className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white" />
+        <div className="absolute top-0 left-0 z-20 w-6 h-6 rounded-br-lg rounded-tl-xl bg-amber-500 flex items-center justify-center">
+          <WifiOff className="w-3 h-3 text-white" />
         </div>
       )}
 
-      {/* Main Content */}
-      <div className="w-full p-2 sm:p-2.5 md:p-3">
-
-        {/* Header Row: Icon + Title + Menu */}
-        <div className="flex items-start gap-2 sm:gap-2.5 mb-2 sm:mb-2.5 min-w-0">
-          {/* Product Icon */}
-          <div className="w-9 h-9 sm:w-10 sm:h-10 md:w-11 md:h-11 rounded-lg bg-gradient-to-br from-indigo-100 to-indigo-50 dark:from-indigo-900/40 dark:to-indigo-900/20 flex items-center justify-center flex-shrink-0 shadow-sm">
-            <Package className="w-4.5 h-4.5 sm:w-5 sm:h-5 md:w-6 md:h-6 text-indigo-600 dark:text-indigo-400" />
+      <div className="w-full p-3 sm:p-4 flex flex-col">
+        {/* Main Row: Icon, Text, Stats, Actions */}
+        <div className="flex items-center gap-3 w-full">
+          {/* Icon */}
+          <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-100 dark:border-indigo-800/50 flex items-center justify-center flex-shrink-0">
+            <Package className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-500 dark:text-indigo-400" />
           </div>
 
-          {/* Title + Supplier */}
-          <div className="flex-1 min-w-0">
-            <h3 className="font-bold text-xs sm:text-sm md:text-base text-slate-900 dark:text-white truncate pr-1">
-              {product.name}
-            </h3>
-            {product.suppliers_name && (
-              <p className="text-xs text-slate-500 dark:text-slate-400 truncate line-clamp-1">
-                {product.suppliers_name}
-              </p>
-            )}
+          {/* Info: Title */}
+          <div className="flex-1 min-w-0 flex flex-col justify-center gap-1 pr-2">
+             <h3 className="font-semibold text-sm sm:text-base text-slate-900 dark:text-white truncate" title={product.name}>
+               {product.name}
+             </h3>
+             {product.is_unique && (
+               <div className="flex">
+                 <span className="flex-shrink-0 inline-flex px-1.5 py-0.5 rounded-md bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 text-[9px] font-bold uppercase border border-indigo-200 dark:border-indigo-700/50 tracking-wider">
+                   Unique
+                 </span>
+               </div>
+             )}
           </div>
 
-          {/* Menu Button */}
+          {/* Stats: Price & Qty */}
+          <div className="flex flex-col items-end justify-center flex-shrink-0 pr-1 max-w-[40%]">
+             <p className="font-bold text-[12px] sm:text-base tracking-tighter sm:tracking-normal text-slate-900 dark:text-white truncate w-full text-right" title={product.selling_price != null ? String(product.selling_price) : ''}>
+               {product.selling_price != null ? (formatPrice ? formatPrice(product.selling_price) : `$${Number(product.selling_price).toFixed(2)}`) : 'N/A'}
+             </p>
+             <p className="text-[10px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5 whitespace-nowrap">
+               {product.is_unique ? 'Units:' : 'Qty:'} <span className="font-semibold text-slate-700 dark:text-slate-300">{qty}</span>
+             </p>
+          </div>
+
+          {/* Actions */}
           {hasAnyAction && (
-            <div className="relative flex-shrink-0">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowMenu((prev) => !prev);
-                }}
-                className="w-8 h-8 sm:w-8 sm:h-8 md:w-9 md:h-9 rounded-lg bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 active:scale-90 transition-all flex items-center justify-center flex-shrink-0"
-              >
-                <MoreVertical className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              </button>
+            <div className="relative flex-shrink-0 ml-1 border-l pl-2 sm:pl-3 border-slate-100 dark:border-slate-800">
+               <button
+                 onClick={(e) => {
+                   e.stopPropagation();
+                   setShowMenu((prev) => !prev);
+                 }}
+                 className="w-8 h-8 rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-400 transition-colors"
+               >
+                 <MoreVertical className="w-4 h-4" />
+               </button>
 
-              {showMenu && (
-                <>
-                  <div
-                    className="fixed inset-0 z-40"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowMenu(false);
-                    }}
-                  />
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.95, y: -10 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    className="absolute right-0 top-full mt-1 w-36 sm:w-40 bg-white dark:bg-slate-800 rounded-lg sm:rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden z-50"
-                  >
-                    {canView && (
-                      <button
-                        onClick={(e) => handleAction(onView, e)}
-                        className="w-full flex items-center gap-2 px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 active:bg-indigo-100 dark:active:bg-indigo-900/30 transition-all border-b border-slate-100 dark:border-slate-700 last:border-0"
-                      >
-                        <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-600 dark:text-indigo-400 flex-shrink-0" />
-                        <span>View</span>
-                      </button>
-                    )}
-
-                    {canEdit && (
-                      <button
-                        onClick={(e) => handleAction(onEdit, e)}
-                        className="w-full flex items-center gap-2 px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 active:bg-blue-100 dark:active:bg-blue-900/30 transition-all border-b border-slate-100 dark:border-slate-700 last:border-0"
-                      >
-                        <Edit className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600 dark:text-blue-400 flex-shrink-0" />
-                        <span>Edit</span>
-                      </button>
-                    )}
-
-                    {canDelete && (
-                      <button
-                        onClick={canDeleteSafely ? handleDeleteClick : undefined}
-                        disabled={!canDeleteSafely}
-                        className={`
-                          w-full flex items-center gap-2 px-3 sm:px-3.5 py-2 sm:py-2.5 text-xs sm:text-sm font-medium transition-all
-                          ${canDeleteSafely
-                            ? 'text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 active:bg-red-100 dark:active:bg-red-900/30'
-                            : 'text-slate-400 dark:text-slate-500 cursor-not-allowed'}
-                        `}
-                      >
-                        <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
-                        <span>Delete</span>
-                        {isOffline && !canDeleteSafely && (
-                          <span className="ml-auto text-xs font-semibold opacity-70">Offline</span>
-                        )}
-                      </button>
-                    )}
-                  </motion.div>
-                </>
-              )}
+               {showMenu && (
+                 <>
+                   <div
+                     className="fixed inset-0 z-40"
+                     onClick={(e) => {
+                       e.stopPropagation();
+                       setShowMenu(false);
+                     }}
+                   />
+                   <motion.div
+                     initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                     animate={{ opacity: 1, scale: 1, y: 0 }}
+                     className="absolute right-0 top-full mt-1 w-36 sm:w-40 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden z-50"
+                   >
+                     {canView && (
+                       <button
+                         onClick={(e) => handleAction(onView, e)}
+                         className="w-full flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors border-b border-slate-100 dark:border-slate-700 last:border-0"
+                       >
+                         <Eye className="w-3.5 h-3.5 text-indigo-500 flex-shrink-0" />
+                         <span>View</span>
+                       </button>
+                     )}
+                     {canEdit && (
+                       <button
+                         onClick={(e) => handleAction(onEdit, e)}
+                         className="w-full flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors border-b border-slate-100 dark:border-slate-700 last:border-0"
+                       >
+                         <Edit className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" />
+                         <span>Edit</span>
+                       </button>
+                     )}
+                     {canDelete && (
+                       <button
+                         onClick={canDeleteSafely ? handleDeleteClick : undefined}
+                         disabled={!canDeleteSafely}
+                         className={`w-full flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-medium transition-colors ${
+                           canDeleteSafely
+                             ? 'text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20'
+                             : 'text-slate-400 cursor-not-allowed'
+                         }`}
+                       >
+                         <Trash2 className="w-3.5 h-3.5 flex-shrink-0" />
+                         <span>Delete</span>
+                       </button>
+                     )}
+                   </motion.div>
+                 </>
+               )}
             </div>
           )}
         </div>
 
-        {/* Price + Quantity Row */}
-        <div className="grid grid-cols-2 gap-1.5 sm:gap-2 mb-2 sm:mb-2.5">
-          {/* Selling Price */}
-          {product.selling_price != null && (
-            <div className="bg-gradient-to-br from-indigo-50 to-indigo-50/50 dark:from-indigo-900/20 dark:to-indigo-900/10 rounded-lg bg-indigo-200/50 dark:bg-indigo-900/30 p-2 sm:p-2.5 border border-indigo-200/50 dark:border-indigo-800/50 min-w-0 overflow-hidden">
-              <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-0.5">Price</p>
-              <p className="text-xs sm:text-sm font-bold text-indigo-600 dark:text-indigo-400 truncate" title={formatPrice ? formatPrice(product.selling_price) : `$${Number(product.selling_price).toFixed(2)}`}>
-                {formatPrice ? formatPrice(product.selling_price) : `$${Number(product.selling_price).toFixed(2)}`}
-              </p>
-            </div>
-          )}
-
-          {/* Quantity */}
-          <div className="bg-gradient-to-br from-emerald-50 to-emerald-50/50 dark:from-emerald-900/20 dark:to-emerald-900/10 rounded-lg bg-emerald-200/50 dark:bg-emerald-900/30 p-2 sm:p-2.5 border border-emerald-200/50 dark:border-emerald-800/50">
-            <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 mb-0.5">
-              {product.is_unique ? 'Units' : 'Qty'}
-            </p>
-            <p className="text-xs sm:text-sm font-bold text-emerald-600 dark:text-emerald-400">
-              {qty}
-            </p>
-          </div>
-        </div>
-
-        {/* Badges Row */}
-        {product.is_unique && (
-          <div className="mb-2 sm:mb-2.5">
-            <span className="inline-flex px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-lg sm:rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 text-xs font-bold uppercase tracking-wider">
-              ✓ Unique
-            </span>
+        {/* Footer Meta Row (Optional descriptions / dates) */}
+        {(product.description || product.created_at || product.updated_by_email) && (
+          <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-col gap-1.5">
+             {product.description && (
+               <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 line-clamp-1">
+                 {product.description}
+               </p>
+             )}
+             <div className="flex items-center justify-between text-[10px] text-slate-400 dark:text-slate-500">
+                {product.created_at && (
+                  <span>Added: {new Date(product.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                )}
+                {product.updated_by_email && (
+                  <span>By: {product.updated_by_email.split('@')[0]}</span>
+                )}
+             </div>
           </div>
         )}
-
-        {/* Description (if exists) */}
-        {product.description && (
-          <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-1 mb-2 sm:mb-2.5 leading-relaxed">
-            {product.description}
-          </p>
-        )}
-
-        {/* Footer: Meta Info */}
-        <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between gap-0.5 xs:gap-1 text-xs text-slate-500 dark:text-slate-400 pt-2 sm:pt-2.5 border-t border-slate-100 dark:border-slate-700/50">
-          {product.created_at && (
-            <span className="truncate text-xs">
-              <span className="font-semibold">Added:</span> {new Date(product.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-            </span>
-          )}
-          {product.updated_by_email && (
-            <span className="truncate text-right xs:text-left text-xs">
-              <span className="font-semibold">By:</span> {product.updated_by_email.split('@')[0]}
-            </span>
-          )}
-        </div>
       </div>
     </motion.div>
   );

@@ -13,6 +13,7 @@ import toast from 'react-hot-toast';
 import { supabase } from '../../../supabaseClient';
 import { PLANS } from '../../../utils/planManager';
 import UpgradePlanModal from '../Shared/UpgradePlanModal';
+import SearchInput from '../ui/SearchInput';
 
 export default function ReceiptsPage() {
   const storeId = localStorage.getItem('store_id');
@@ -199,16 +200,11 @@ export default function ReceiptsPage() {
           </div>
 
           {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search receipts by ID, customer, phone..."
-              className="w-full pl-12 pr-4 py-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500"
-            />
-          </div>
+          <SearchInput
+            value={searchTerm}
+            onChange={setSearchTerm}
+            placeholder="Search receipts by ID, customer, phone..."
+          />
 
           {/* Sale Groups */}
           {showSaleGroups && (

@@ -90,7 +90,8 @@ export default function useStoreUsersAccess() {
       }
 
       setUserPlan(effectivePlan);
-      setRegistrationDate(subData || storeData.created_at);
+      // We use store's created_at for trial calculations to match useDashboardAccess
+      setRegistrationDate(subData ? subData.created_at : storeData.created_at);
 
       hasPremiumAccess = effectivePlan === PLANS.PREMIUM || effectivePlan === PLANS.BUSINESS;
 
@@ -176,7 +177,7 @@ export default function useStoreUsersAccess() {
       // NOTE: Legacy premium checks via store_users and user_access removed.
       // Premium access is now derived solely from the subscription table.
 
-      // ─── Auto-inject features from server-side flags ────────
+      // ─── Auto-inject features from server-side flags (ADDITIVE only) ────────
       if (subData) {
         const serverFeatures = [
           { flag: 'has_warehouse', key: 'warehouse' },
@@ -192,15 +193,17 @@ export default function useStoreUsersAccess() {
             if (!userFeatures.includes(key)) userFeatures.push(key);
           }
         });
-      } else if (effectivePlan === PLANS.BUSINESS) {
-        // Legacy fallback
+      }
+
+      // ─── Plan-based injection (ALWAYS runs as fallback) ────────
+      // This matches StoreDashboard/useDashboardAccess logic exactly.
+      if (effectivePlan === PLANS.BUSINESS) {
         const businessFeatures = ['warehouse', 'admin_ops', 'ai_insights', 'financial_dashboard'];
         businessFeatures.forEach(f => {
           if (!features.includes(f)) features.push(f);
           if (!userFeatures.includes(f)) userFeatures.push(f);
         });
       } else if (effectivePlan === PLANS.PREMIUM) {
-        // Legacy fallback
         const premiumFeatures = ['ai_insights', 'financial_dashboard'];
         premiumFeatures.forEach(f => {
           if (!features.includes(f)) features.push(f);

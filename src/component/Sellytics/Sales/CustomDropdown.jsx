@@ -47,14 +47,16 @@ export default function CustomDropdown({
   className = ''
 }) {
   const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef(null);
   const triggerRef = useRef(null);
   const menuRef = useRef(null);
 
   // Close on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      const isOutsideTrigger = triggerRef.current && !triggerRef.current.contains(event.target);
+      const isOutsideMenu = menuRef.current && !menuRef.current.contains(event.target);
+
+      if (isOutsideTrigger && isOutsideMenu) {
         setIsOpen(false);
       }
     };

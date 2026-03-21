@@ -101,7 +101,9 @@ export const getEffectivePlan = (currentPlan = PLANS.FREE, subscriptionOrCreated
  * Use this to hide/show buttons or protect routes
  */
 export const hasFeature = (featureName, currentPlan, subscriptionOrCreatedAt) => {
-    // 1. If we have a subscription object, check for server-side boolean flags first
+    // 1. If we have a subscription object, check for server-side boolean flags.
+    //    Server flags are ADDITIVE only: if true, grant access immediately.
+    //    If false, do NOT block — fall through to plan-based logic instead.
     if (subscriptionOrCreatedAt && typeof subscriptionOrCreatedAt === 'object') {
         const featureMap = {
             'WAREHOUSE': 'has_warehouse',
@@ -111,12 +113,13 @@ export const hasFeature = (featureName, currentPlan, subscriptionOrCreatedAt) =>
             'MULTI_STORE': 'has_multi_store',
         };
         const serverField = featureMap[featureName];
-        if (serverField && subscriptionOrCreatedAt[serverField] !== undefined) {
-            return subscriptionOrCreatedAt[serverField];
+        if (serverField && subscriptionOrCreatedAt[serverField] === true) {
+            return true; // Server explicitly grants this feature
         }
+        // If false or undefined, fall through to plan-based check below
     }
 
-    // 2. Fallback to hardcoded plan-based logic
+    // 2. Plan-based logic (always runs if server flag didn't grant)
     const plan = getEffectivePlan(currentPlan, subscriptionOrCreatedAt);
 
     const permissions = {

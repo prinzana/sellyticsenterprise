@@ -21,9 +21,9 @@ export default function GeneralLedger() {
     const id = localStorage.getItem('store_id');
     return id ? Number(id) : null;
   });
- // default view
+  // default view
   const [selectedEntries, setSelectedEntries] = useState([]);
-const [view, setView] = useState(() => {
+  const [view, setView] = useState(() => {
     return localStorage.getItem('ledger_view') || 'card';
   });
 
@@ -139,7 +139,7 @@ const [view, setView] = useState(() => {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-4 sm:p-6 lg:p-8">
-    
+
 
       {/* Header */}
       <div className="mb-8">
@@ -234,7 +234,7 @@ const [view, setView] = useState(() => {
                   <ChevronLeft className="w-5 h-5" />
                 </button>
                 <span className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300">
-                
+
                 </span>
                 <button
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}

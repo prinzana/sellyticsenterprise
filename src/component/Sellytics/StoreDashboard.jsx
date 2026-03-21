@@ -12,8 +12,8 @@ import {
   FaRobot,
   FaUserShield,
   FaMoneyBillWave,
+  FaWarehouse,
 } from 'react-icons/fa';
-import { Warehouse } from "lucide-react";
 import UserOnboardingTour from './StoreUsers/UserOnboardingTour';
 
 import StoreOwnerDashboard from './Profile/StoreOwnerDashboard';
@@ -47,7 +47,7 @@ const StoreDashboard = () => {
     { name: 'Fix Scan', icon: FaQrcode, aria: 'Fix Scan: View and edit your profile', feature: 'PUBLIC' },
     { name: 'AI Insights', icon: FaRobot, aria: 'AI Insights: Explore AI-driven insights', feature: 'AI_INSIGHTS' },
     { name: 'Financials', icon: FaMoneyBillWave, aria: 'Financials: View financial data', feature: 'FINANCIAL_DASHBOARD' },
-    { name: 'Warehouse', icon: Warehouse, aria: 'Manage your Warehouse Inventory', feature: 'WAREHOUSE' },
+    { name: 'Warehouse', icon: FaWarehouse, aria: 'Manage your Warehouse Inventory', feature: 'WAREHOUSE' },
     { name: 'Admin Ops', icon: FaUserShield, aria: 'Admin Ops: Manage store operations', feature: 'ADMIN_OPS' },
     { name: 'Store Settings', icon: FaUsersCog, aria: 'Manage settings and alerts', feature: 'PUBLIC' },
     { name: 'Upgrade', icon: FaCrown, aria: 'Upgrade: Upgrade your plan', feature: 'PUBLIC' },

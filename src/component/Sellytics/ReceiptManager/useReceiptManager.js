@@ -484,6 +484,7 @@ useEffect(() => {
     deleteSaleGroup,
     bulkDeleteSaleGroups,
     getProductGroups,
+    fetchOrCreateReceipt,
     closeReceiptModal: () => {
       setSelectedSaleGroup(null);
       setSelectedReceipt(null);

@@ -168,94 +168,98 @@ export default function HistoryPage({ storeId, productId }) {
   return (
     <div className="space-y-2.5 sm:space-y-3 pb-24">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2.5 sm:gap-3 px-3 sm:px-4 md:px-6">
-        <div className="min-w-0">
-          <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white truncate">Activity History</h2>
-          <p className="text-[9px] sm:text-xs text-slate-500 mt-0.5">{filteredActivities.length} record{filteredActivities.length !== 1 ? 's' : ''}</p>
+      <div className="flex justify-between items-center gap-3 px-4 sm:px-6">
+        <div className="min-w-0 flex-1">
+          <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white truncate">Activity History</h2>
+          <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">{filteredActivities.length} record{filteredActivities.length !== 1 ? 's' : ''}</p>
         </div>
-        <div className="flex gap-2 w-full sm:w-auto">
+        <div className="flex items-center gap-2 flex-shrink-0">
           {activities.length > 0 && (
             <button
               onClick={handleClearHistory}
               disabled={isDeleting}
-              className="flex flex-1 sm:flex-none items-center justify-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 bg-red-50 text-red-600 border border-red-100 dark:bg-red-900/20 dark:border-red-900/30 rounded-lg hover:bg-red-100 transition-colors active:scale-95 text-xs sm:text-sm font-medium flex-shrink-0"
+              className="flex items-center justify-center p-2 sm:px-3 sm:py-2 bg-red-50 text-red-600 border border-red-100 dark:bg-red-900/20 dark:border-red-900/30 rounded-xl sm:rounded-lg hover:bg-red-100 transition-colors active:scale-95 shadow-sm"
+              title="Clear All History"
             >
-              <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              <span className="hidden xs:inline">Clear All</span>
+              <Trash2 className="w-5 h-5 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline ml-1.5 text-sm font-semibold">Clear All</span>
             </button>
           )}
           <button
             onClick={fetchActivities}
-            className="flex flex-1 sm:flex-none items-center justify-center gap-1.5 px-2.5 sm:px-3 py-1.5 sm:py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 transition-colors active:scale-95 text-xs sm:text-sm font-medium flex-shrink-0"
+            className="flex items-center justify-center p-2 sm:px-3 sm:py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl sm:rounded-lg hover:bg-slate-50 transition-colors active:scale-95 shadow-sm text-slate-700 dark:text-slate-300"
+            title="Refresh History"
           >
-            <RefreshCw className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-            <span className="hidden xs:inline">Refresh</span>
+            <RefreshCw className="w-5 h-5 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline ml-1.5 text-sm font-semibold">Refresh</span>
           </button>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-white dark:bg-slate-800 rounded-lg sm:rounded-xl border border-slate-200 dark:border-slate-700 p-2 sm:p-3 space-y-2 mx-3 sm:mx-4 md:mx-6">
+      <div className="bg-white dark:bg-slate-800 rounded-none sm:rounded-2xl border-y border-x-0 sm:border border-slate-200 dark:border-slate-700 p-3.5 sm:p-4 space-y-3 -mx-4 sm:mx-0 sm:mx-4 md:mx-6 shadow-sm">
         <div className="relative">
-          <Search className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-slate-400" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search..."
-            className="w-full pl-8 sm:pl-10 pr-2.5 sm:pr-3 py-1.5 sm:py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-[11px] sm:text-xs"
+            placeholder="Search history..."
+            className="w-full pl-10 pr-4 py-2.5 sm:py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all outline-none"
           />
         </div>
 
-        <div className="flex flex-col gap-1.5 sm:gap-2">
-          <div className="flex items-center gap-0.5 overflow-x-auto pb-0.5">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-1 overflow-x-auto pb-1 no-scrollbar">
             {['all', 'today', 'week', 'month'].map(filter => (
               <button
                 key={filter}
                 onClick={() => setDateFilter(filter)}
-                className={`px-1.5 sm:px-2.5 py-1 rounded text-[9px] sm:text-xs font-medium transition-colors flex-shrink-0 ${dateFilter === filter
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex-shrink-0 ${dateFilter === filter
+                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20'
+                  : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
                   }`}
               >
-                {filter === 'all' ? 'All' : filter === 'today' ? 'Today' : filter.charAt(0).toUpperCase() + filter.slice(1)}
+                {filter === 'all' ? 'All Time' : filter === 'today' ? 'Today' : filter.charAt(0).toUpperCase() + filter.slice(1)}
               </button>
             ))}
           </div>
 
-          <div className="flex items-center gap-0.5 overflow-x-auto pb-0.5">
+          <div className="w-[1px] h-6 bg-slate-200 dark:bg-slate-700 hidden sm:block mx-1"></div>
+
+          <div className="flex items-center gap-1 overflow-x-auto pb-1 no-scrollbar">
             <button
               onClick={() => setTypeFilter('all')}
-              className={`px-1.5 sm:px-2.5 py-1 rounded text-[9px] sm:text-xs font-medium transition-colors flex-shrink-0 ${typeFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex-shrink-0 ${typeFilter === 'all' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
                 }`}
             >
-              All
+              All Types
             </button>
             <button
               onClick={() => setTypeFilter('increase')}
-              className={`flex items-center gap-0.5 px-1.5 sm:px-2.5 py-1 rounded text-[9px] sm:text-xs font-medium transition-colors flex-shrink-0 ${typeFilter === 'increase' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
+              className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex-shrink-0 ${typeFilter === 'increase' ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/20' : 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100'
                 }`}
             >
-              <Plus className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-              <span className="hidden xs:inline">Add</span>
+              <Plus className="w-3.5 h-3.5" />
+              Additions
             </button>
             <button
               onClick={() => setTypeFilter('decrease')}
-              className={`flex items-center gap-0.5 px-1.5 sm:px-2.5 py-1 rounded text-[9px] sm:text-xs font-medium transition-colors flex-shrink-0 ${typeFilter === 'decrease' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
+              className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex-shrink-0 ${typeFilter === 'decrease' ? 'bg-red-500 text-white shadow-md shadow-red-500/20' : 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 hover:bg-red-100'
                 }`}
             >
-              <Minus className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-              <span className="hidden xs:inline">Remove</span>
+              <Minus className="w-3.5 h-3.5" />
+              Removals
             </button>
           </div>
         </div>
       </div>
 
       {/* Activity List */}
-      <div className="space-y-1.5 sm:space-y-2 px-3 sm:px-4 md:px-6">
+      <div className="-mx-4 sm:mx-0 flex flex-col border-y border-slate-200 dark:border-slate-800 sm:border-y-0 sm:space-y-2 sm:px-4 md:px-6 pb-4 sm:pb-0">
         <AnimatePresence>
           {filteredActivities.length === 0 ? (
-            <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 px-4 py-8 text-center">
+            <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 mx-4 sm:mx-0 px-4 py-8 text-center">
               <History className="w-8 h-8 sm:w-10 sm:h-10 mx-auto mb-2 text-slate-300" />
               <p className="text-xs sm:text-sm text-slate-500">No activities</p>
             </div>
@@ -267,20 +271,20 @@ export default function HistoryPage({ storeId, productId }) {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ delay: index * 0.05 }}
-                className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-2.5 sm:p-3 hover:shadow-md transition-shadow relative"
+                className="bg-white dark:bg-slate-800 rounded-none sm:rounded-2xl border-b border-x-0 sm:border border-slate-200 dark:border-slate-700 p-3.5 sm:p-4 sm:hover:shadow-md transition-shadow relative"
               >
-                <div className="flex items-start justify-between gap-2 sm:gap-3">
-                  <div className="flex items-start gap-2 sm:gap-2.5 flex-1 min-w-0 pr-6">
-                    <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${activity.difference > 0 ? 'bg-emerald-100 dark:bg-emerald-900/30' : 'bg-red-100 dark:bg-red-900/30'
-                      }`}>
-                      {activity.difference > 0 ? (
-                        <Plus className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
-                      ) : (
-                        <Minus className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />
-                      )}
-                    </div>
+                  <div className="flex items-start justify-between gap-2 sm:gap-3 w-full">
+                    <div className="flex items-start gap-2 sm:gap-2.5 flex-1 min-w-0 pr-6 sm:pr-8">
+                      <div className={`w-10 h-10 sm:w-12 sm:h-12 mt-1 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm ${activity.difference > 0 ? 'bg-gradient-to-br from-emerald-400 to-emerald-600' : 'bg-gradient-to-br from-red-400 to-red-600'
+                        }`}>
+                        {activity.difference > 0 ? (
+                          <Plus className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                        ) : (
+                          <Minus className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                        )}
+                      </div>
 
-                    <div className="flex-1 min-w-0">
+                      <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <h3 className="font-semibold text-xs sm:text-sm text-slate-900 dark:text-white truncate">
                           {activity.dynamic_product?.name || 'Unknown'}

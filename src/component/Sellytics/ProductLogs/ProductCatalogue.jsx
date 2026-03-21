@@ -405,7 +405,7 @@ export default function ProductCatalogue() {
             )}
           </div>
         ) : (
-          <div className="flex flex-col gap-4">
+          <div className="-mx-4 sm:mx-0 flex flex-col gap-0 sm:gap-4 divide-y divide-slate-100 dark:divide-slate-800 sm:divide-y-0">
             <AnimatePresence mode="popLayout">
               {filteredProducts.map((product, index) => (
                 <ProductCard

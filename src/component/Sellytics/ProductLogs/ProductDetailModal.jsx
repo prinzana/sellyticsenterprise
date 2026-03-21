@@ -117,47 +117,48 @@ export default function DetailModal({ product, storeId, formatPrice, isOpen, onC
         </div>
 
         <div className="p-6 space-y-6 overflow-y-auto max-h-[calc(90vh-180px)]">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="p-4 bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-xl min-w-0 overflow-hidden">
-              <div className="text-xs text-slate-600 dark:text-slate-400 mb-1">Purchase Price</div>
-              <div className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate" title={formatPrice(product.purchase_price || 0)}>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div className="p-3 sm:p-4 bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-xl min-w-0 overflow-hidden">
+              <div className="text-[11px] sm:text-xs text-slate-600 dark:text-slate-400 mb-1">Purchase Price</div>
+              <div className="text-sm font-bold text-slate-900 dark:text-white truncate" title={formatPrice(product.purchase_price || 0)}>
                 {formatPrice(product.purchase_price || 0)}
               </div>
             </div>
-            <div className="p-4 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-xl min-w-0 overflow-hidden">
-              <div className="text-xs text-slate-600 dark:text-slate-400 mb-1">Selling Price</div>
-              <div className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate" title={formatPrice(product.selling_price || 0)}>
+            <div className="p-3 sm:p-4 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-xl min-w-0 overflow-hidden">
+              <div className="text-[11px] sm:text-xs text-slate-600 dark:text-slate-400 mb-1">Selling Price</div>
+              <div className="text-sm font-bold text-slate-900 dark:text-white truncate" title={formatPrice(product.selling_price || 0)}>
                 {formatPrice(product.selling_price || 0)}
               </div>
             </div>
-            <div className="p-4 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-xl min-w-0 overflow-hidden">
-              <div className="text-xs text-slate-600 dark:text-slate-400 mb-1">Quantity</div>
-              <div className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+            <div className="p-3 sm:p-4 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-xl min-w-0 overflow-hidden">
+              <div className="text-[11px] sm:text-xs text-slate-600 dark:text-slate-400 mb-1">Quantity</div>
+              <div className="text-sm font-bold text-slate-900 dark:text-white">
                 {product.is_unique ? allImeis.length : product.purchase_qty || 0}
               </div>
             </div>
-            <div className="p-4 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-xl min-w-0 overflow-hidden">
-              <div className="text-xs text-slate-600 dark:text-slate-400 mb-1">Type</div>
-              <div className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+            <div className="p-3 sm:p-4 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-xl min-w-0 overflow-hidden">
+              <div className="text-[11px] sm:text-xs text-slate-600 dark:text-slate-400 mb-1">Type</div>
+              <div className="text-sm font-bold text-slate-900 dark:text-white">
                 {product.is_unique ? 'Unique' : 'Standard'}
               </div>
             </div>
+            {product.suppliers_name && (
+              <div className="col-span-2 lg:col-span-4 p-3 sm:p-4 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-800/50 rounded-xl min-w-0 overflow-hidden border border-slate-100 dark:border-slate-700">
+                <div className="text-[11px] sm:text-xs text-slate-600 dark:text-slate-400 mb-1">Supplier</div>
+                <div className="text-sm font-bold text-slate-900 dark:text-white truncate" title={product.suppliers_name}>
+                  {product.suppliers_name}
+                </div>
+              </div>
+            )}
           </div>
-
-          {product.suppliers_name && (
-            <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl">
-              <div className="text-xs text-slate-500 mb-1">Supplier</div>
-              <div className="font-medium">{product.suppliers_name}</div>
-            </div>
-          )}
 
           {product.is_unique && allImeis.length > 0 && (
             <div className="space-y-4 border-t border-slate-200 dark:border-slate-800 pt-6">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">
-                  Unique Items ({filteredImeis.length} of {allImeis.length})
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <h3 className="text-base sm:text-lg font-semibold flex-shrink-0 text-slate-900 dark:text-white">
+                  Unique Items <span className="text-slate-500 font-normal text-sm">({filteredImeis.length} of {allImeis.length})</span>
                 </h3>
-                <div className="relative">
+                <div className="relative w-full sm:w-auto">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
                   <input
                     type="text"
@@ -167,7 +168,7 @@ export default function DetailModal({ product, storeId, formatPrice, isOpen, onC
                       setSearchTerm(e.target.value);
                       setCurrentPage(1);
                     }}
-                    className="pl-10 pr-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 dark:bg-slate-800"
+                    className="w-full sm:w-64 pl-9 pr-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 dark:bg-slate-800"
                   />
                 </div>
               </div>
@@ -215,19 +216,26 @@ export default function DetailModal({ product, storeId, formatPrice, isOpen, onC
                   </div>
 
                   {totalPages > 1 && (
-                    <div className="flex items-center justify-center gap-2 pt-4">
-                      {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                        <button
-                          key={page}
-                          onClick={() => setCurrentPage(page)}
-                          className={`w-10 h-10 rounded-lg font-medium transition-all ${currentPage === page
-                            ? 'bg-indigo-600 text-white'
-                            : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700'
-                            }`}
-                        >
-                          {page}
-                        </button>
-                      ))}
+                    <div className="flex items-center justify-between sm:justify-center gap-3 pt-6 border-t border-slate-100 dark:border-slate-800">
+                      <button
+                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                        className="px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-slate-700 dark:text-slate-300"
+                      >
+                        Previous
+                      </button>
+                      
+                      <div className="text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-400">
+                         Page {currentPage} of {totalPages}
+                      </div>
+
+                      <button
+                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                        className="px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 disabled:bg-slate-100 disabled:text-slate-400 disabled:dark:bg-slate-800 disabled:cursor-not-allowed transition-colors"
+                      >
+                        Next
+                      </button>
                     </div>
                   )}
                 </>

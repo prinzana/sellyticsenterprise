@@ -54,7 +54,7 @@ export default function SuppliersInventory() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-4 space-y-8">
+    <div className="w-full max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
       <SuppliersHeader
         onExportCSV={exportCSV}
         onExportPDF={exportPDF}
@@ -78,12 +78,12 @@ export default function SuppliersInventory() {
       {loading ? (
         <div className="text-center py-12 text-slate-500">Loading inventory...</div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-16 text-slate-500">
+        <div className="text-center py-16 text-slate-500 bg-white dark:bg-slate-800 sm:rounded-2xl border-y sm:border border-slate-200 dark:border-slate-700 -mx-4 sm:mx-0 shadow-sm">
           <p className="text-xl font-medium">No inventory items found</p>
           <p className="text-sm mt-2">Click "New Inventory" to add one.</p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="-mx-4 sm:mx-0 flex flex-col border-y border-slate-200 dark:border-slate-800 sm:border-y-0 sm:space-y-4 pb-4 sm:pb-0">
           {paginated.map((item) => (
             <SuppliersTableRow
               key={item.id}
@@ -102,21 +102,21 @@ export default function SuppliersInventory() {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex justify-center gap-3 mt-8">
+        <div className="flex items-center justify-between sm:justify-center gap-2 sm:gap-4 mt-6 sm:mt-8 px-2 sm:px-0">
           <button
             onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
             disabled={currentPage === 1}
-            className="px-5 py-3 bg-slate-200 dark:bg-slate-700 rounded-xl disabled:opacity-50"
+            className="px-3.5 sm:px-5 py-2 sm:py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-[13px] sm:text-sm font-bold rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 transition-all shadow-sm focus:outline-none whitespace-nowrap active:scale-[0.98]"
           >
             Previous
           </button>
-          <span className="px-5 py-3 bg-slate-100 dark:bg-slate-800 rounded-xl">
+          <span className="px-3.5 sm:px-5 py-2 sm:py-2 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-[13px] sm:text-sm font-bold rounded-xl shadow-inner whitespace-nowrap text-center flex-1 sm:flex-none">
             Page {currentPage} of {totalPages}
           </span>
           <button
             onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
-            className="px-5 py-3 bg-slate-200 dark:bg-slate-700 rounded-xl disabled:opacity-50"
+            className="px-3.5 sm:px-5 py-2 sm:py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-[13px] sm:text-sm font-bold rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 transition-all shadow-sm focus:outline-none whitespace-nowrap active:scale-[0.98]"
           >
             Next
           </button>

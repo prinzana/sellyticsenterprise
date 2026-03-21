@@ -28,7 +28,7 @@ export default function CogsVsSalesChart({ cogsVsSalesData }) {
         titleFont: { size: 14 },
         bodyFont: { size: 13 },
         callbacks: {
-          label: function(context) {
+          label: function (context) {
             return `${context.label}: ${formatPrice(context.parsed.y)}`;
           }
         }
@@ -41,6 +41,12 @@ export default function CogsVsSalesChart({ cogsVsSalesData }) {
         ticks: {
           font: { size: 11 },
           color: '#64748b',
+          callback: function(value) {
+            if (Math.abs(value) >= 1e9) return (value / 1e9).toFixed(1).replace(/\.0$/, '') + 'B';
+            if (Math.abs(value) >= 1e6) return (value / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
+            if (Math.abs(value) >= 1e3) return (value / 1e3).toFixed(1).replace(/\.0$/, '') + 'K';
+            return value;
+          },
         },
       },
       x: {
@@ -54,30 +60,32 @@ export default function CogsVsSalesChart({ cogsVsSalesData }) {
   };
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+    <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-3xl border border-slate-200/60 dark:border-slate-800/60 shadow-[0_8px_30px_rgb(0,0,0,0.02)] overflow-hidden transition-all duration-300 hover:shadow-[0_20px_40px_rgb(0,0,0,0.06)]">
       <button
         onClick={() => setShowChart(!showChart)}
-        className="w-full p-6 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors rounded-t-2xl"
+        className="w-full p-4 sm:p-6 flex items-center justify-between hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors"
       >
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
-            <BarChart3 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+        <div className="flex items-center gap-3 sm:gap-4">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-50 dark:bg-blue-500/10 rounded-2xl flex items-center justify-center border border-blue-100 dark:border-blue-500/20 shadow-sm shadow-blue-500/10">
+            <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 dark:text-blue-400" />
           </div>
           <div className="text-left">
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Sales vs COGS</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Revenue vs cost comparison</p>
+            <h3 className="text-base sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">
+              Sales vs COGS
+            </h3>
+            <p className="hidden sm:block text-sm text-slate-500 dark:text-slate-400 font-medium">Revenue vs cost equity analysis</p>
           </div>
         </div>
-        {showChart ? (
-          <ChevronUp className="w-5 h-5 text-slate-400" />
-        ) : (
-          <ChevronDown className="w-5 h-5 text-slate-400" />
-        )}
+        <div className="flex items-center gap-2">
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${showChart ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600' : 'bg-slate-50 dark:bg-slate-800 text-slate-400'}`}>
+                {showChart ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            </div>
+        </div>
       </button>
 
       {showChart && (
-        <div className="p-6 border-t border-slate-200 dark:border-slate-800">
-          <div className="h-80">
+        <div className="px-3 pb-4 sm:px-6 sm:pb-6 animate-in fade-in zoom-in-95 duration-500">
+          <div className="h-[280px] sm:h-[350px] lg:h-[400px] w-full mt-2">
             <Bar data={cogsVsSalesData} options={chartOptions} />
           </div>
         </div>

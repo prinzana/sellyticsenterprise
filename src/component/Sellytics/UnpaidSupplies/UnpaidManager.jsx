@@ -42,6 +42,7 @@ export default function DebtsManager() {
   const currentUserEmail = localStorage.getItem('user_email');
 
   const [permissions, setPermissions] = useState({ canView: false, canEdit: false, canDelete: false });
+  const [selectedStat, setSelectedStat] = useState(null);
 
   useEffect(() => {
     async function loadPermissions() {
@@ -117,15 +118,16 @@ export default function DebtsManager() {
         </AnimatePresence>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
 
           {/* TOTAL */}
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white dark:bg-slate-800 rounded-xl p-3 border border-slate-200 dark:border-slate-700 shadow-sm"
+            onClick={() => setSelectedStat({ title: 'Total Worth', value: formatPrice(stats.totalOwed) })}
+            className="bg-white dark:bg-slate-800 rounded-xl p-3 sm:p-4 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors"
           >
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-1 sm:mb-2">
               <div className="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center shrink-0">
                 <Users className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
               </div>
@@ -134,12 +136,14 @@ export default function DebtsManager() {
               </span>
             </div>
 
-            <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">
-              Total Worth
-            </p>
-            <p className="text-base sm:text-xl font-bold text-gray-900 dark:text-white truncate">
-              {formatPrice(stats.totalOwed)}
-            </p>
+            <div className="mt-auto">
+              <p className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 uppercase font-semibold tracking-wide">
+                Total Worth
+              </p>
+              <p className="text-[13px] sm:text-xl font-black text-gray-900 dark:text-white break-words leading-tight mt-0.5 tracking-tight relative -left-[1px]">
+                {formatPrice(stats.totalOwed, { abbreviate: true })}
+              </p>
+            </div>
           </motion.div>
 
           {/* UNPAID */}
@@ -147,9 +151,10 @@ export default function DebtsManager() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.05 }}
-            className="bg-white dark:bg-slate-800 rounded-xl p-3 border border-slate-200 dark:border-slate-700 shadow-sm"
+            onClick={() => setSelectedStat({ title: 'Unpaid', value: formatPrice(stats.totalBalance) })}
+            className="bg-white dark:bg-slate-800 rounded-xl p-3 sm:p-4 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors"
           >
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-1 sm:mb-2">
               <div className="w-8 h-8 rounded-lg bg-red-100 dark:bg-red-900/30 flex items-center justify-center shrink-0">
                 <DollarSign className="w-4 h-4 text-red-600 dark:text-red-400" />
               </div>
@@ -158,12 +163,14 @@ export default function DebtsManager() {
               </span>
             </div>
 
-            <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">
-              Unpaid
-            </p>
-            <p className="text-base sm:text-xl font-bold text-red-600 truncate">
-              {formatPrice(stats.totalBalance)}
-            </p>
+            <div className="mt-auto">
+              <p className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 uppercase font-semibold tracking-wide">
+                Unpaid
+              </p>
+              <p className="text-[13px] sm:text-xl font-black text-red-600 dark:text-red-400 break-words leading-tight mt-0.5 tracking-tight relative -left-[1px]">
+                {formatPrice(stats.totalBalance, { abbreviate: true })}
+              </p>
+            </div>
           </motion.div>
 
           {/* PAID */}
@@ -171,9 +178,10 @@ export default function DebtsManager() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-white dark:bg-slate-800 rounded-xl p-3 border border-slate-200 dark:border-slate-700 shadow-sm"
+            onClick={() => setSelectedStat({ title: 'Paid', value: formatPrice(stats.totalPaid) })}
+            className="bg-white dark:bg-slate-800 rounded-xl p-3 sm:p-4 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors"
           >
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-1 sm:mb-2">
               <div className="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center shrink-0">
                 <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               </div>
@@ -182,12 +190,14 @@ export default function DebtsManager() {
               </span>
             </div>
 
-            <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">
-              Paid
-            </p>
-            <p className="text-base sm:text-xl font-bold text-emerald-600 truncate">
-              {formatPrice(stats.totalPaid)}
-            </p>
+            <div className="mt-auto">
+              <p className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 uppercase font-semibold tracking-wide">
+                Paid
+              </p>
+              <p className="text-[13px] sm:text-xl font-black text-emerald-600 dark:text-emerald-400 break-words leading-tight mt-0.5 tracking-tight relative -left-[1px]">
+                {formatPrice(stats.totalPaid, { abbreviate: true })}
+              </p>
+            </div>
           </motion.div>
 
           {/* SYNC */}
@@ -195,9 +205,9 @@ export default function DebtsManager() {
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
-            className="bg-white dark:bg-slate-800 rounded-xl p-3 border border-slate-200 dark:border-slate-700 shadow-sm"
+            className="bg-white dark:bg-slate-800 rounded-xl p-3 sm:p-4 border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col"
           >
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-1 sm:mb-2">
               <div className="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center shrink-0">
                 {isOnline ? (
                   <Wifi className="w-4 h-4 text-amber-600 dark:text-amber-400" />
@@ -210,19 +220,21 @@ export default function DebtsManager() {
               </span>
             </div>
 
-            <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">
-              Pending
-            </p>
-
-            <div className="flex items-center gap-1">
-              <p className="text-base sm:text-xl font-bold text-amber-600 truncate">
-                {pendingSyncCount}
+            <div className="mt-auto">
+              <p className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 uppercase font-semibold tracking-wide">
+                Pending
               </p>
-              {!isOnline && (
-                <span className="text-[9px] font-bold uppercase text-amber-600 whitespace-nowrap">
-                  Offline
-                </span>
-              )}
+
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <p className="text-[13px] sm:text-xl font-black text-amber-600 dark:text-amber-400 leading-tight tracking-tight">
+                  {pendingSyncCount}
+                </p>
+                {!isOnline && (
+                  <span className="text-[9px] font-bold uppercase text-amber-600 dark:text-amber-400">
+                    Offline
+                  </span>
+                )}
+              </div>
             </div>
           </motion.div>
 
@@ -281,7 +293,7 @@ export default function DebtsManager() {
         )}
 
         {!isLoading && !error && filteredDebts.length > 0 && (
-          <div className="space-y-4">
+          <div className="-mx-4 sm:mx-0 flex flex-col border-y border-slate-200 dark:border-slate-800 sm:border-y-0 sm:space-y-4 pb-4 sm:pb-0 transition-all">
             <AnimatePresence mode="popLayout">
               {filteredDebts.map((debt) => (
                 <div key={debt.id} className="relative">
@@ -305,6 +317,43 @@ export default function DebtsManager() {
 
         <AnimatePresence>
           {showDetail && <DebtDetailModal debt={showDetail} onClose={() => setShowDetail(null)} />}
+        </AnimatePresence>
+
+        {/* Stat Detail Modal */}
+        <AnimatePresence>
+          {selectedStat && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+              onClick={() => setSelectedStat(null)}
+            >
+              <motion.div
+                initial={{ scale: 0.9, y: 20 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.9, y: 20 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-white dark:bg-slate-900 rounded-2xl w-full max-w-sm p-6 sm:p-8 shadow-2xl border border-slate-200 dark:border-slate-800 text-center flex flex-col items-center"
+              >
+                <div className="w-16 h-16 rounded-full bg-indigo-50 dark:bg-indigo-900/20 mb-4 flex items-center justify-center shrink-0">
+                  <DollarSign className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
+                </div>
+                <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-3">
+                  {selectedStat.title}
+                </h3>
+                <p className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white break-words w-full">
+                  {selectedStat.value}
+                </p>
+                <button
+                  onClick={() => setSelectedStat(null)}
+                  className="mt-8 w-full py-3.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                >
+                  Close
+                </button>
+              </motion.div>
+            </motion.div>
+          )}
         </AnimatePresence>
 
         <ScannerModal show={showScanner} scannerMode="external" setScannerMode={() => { }} continuousScan={false} setContinuousScan={() => { }} manualInput="" setManualInput={() => { }} onManualSubmit={() => { }} processScannedCode={handleScanSuccess} onClose={closeScanner} />

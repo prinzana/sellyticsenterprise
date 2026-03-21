@@ -12,8 +12,8 @@ import {
   FaRobot,
   FaUserShield,
   FaMoneyBillWave,
+  FaWarehouse,
 } from 'react-icons/fa';
-import { Warehouse } from 'lucide-react';
 import { setupRBAC } from '../../../utils/planManager';
 import useStoreUsersAccess from './useStoreUsersAccess';
 
@@ -155,7 +155,7 @@ const Dashboard = () => {
     { name: 'Fix Scan', icon: FaQrcode, aria: 'Fix Scan: Fixed barcode scanning', dataTour: 'fix-scan', feature: 'PUBLIC' },
     { name: 'AI Insights', icon: FaRobot, aria: 'AI Insights: Access AI-powered insights', dataTour: 'ai-insights', feature: 'AI_INSIGHTS' },
     { name: 'Financials', icon: FaMoneyBillWave, aria: 'Finances: See all your financial records', dataTour: 'finance', feature: 'FINANCIAL_DASHBOARD' },
-    { name: 'Warehouse', icon: Warehouse, aria: 'Warehouse: Manage warehouse inventory', dataTour: 'warehouse', feature: 'WAREHOUSE' },
+    { name: 'Warehouse', icon: FaWarehouse, aria: 'Warehouse: Manage warehouse inventory', dataTour: 'warehouse', feature: 'WAREHOUSE' },
     { name: 'Admin Ops', icon: FaUserShield, aria: 'Admin Operations: Manage store operations', dataTour: 'admin-ops', feature: 'ADMIN_OPS' },
     { name: 'Notifications', icon: FaBell, aria: 'Notifications: Stay updated with store-related notifications', dataTour: 'notifications', feature: 'PUBLIC' },
     { name: 'Colleagues', icon: FaIdBadge, aria: 'Colleagues: Manage your colleagues', dataTour: 'colleagues', feature: 'PUBLIC' },

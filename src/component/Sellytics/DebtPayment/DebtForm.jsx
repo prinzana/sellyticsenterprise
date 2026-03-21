@@ -96,48 +96,48 @@ export default function DebtForm() {
 
 
   return (
-    <div className="max-w-4xl mx-auto p-0 space-y-6">
-      <h2 className="text-xl font-bold dark:bg-gray-900 dark:text-white">Add New Debt</h2>
-      <form
-        onSubmit={handleAddDebt}
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 bg-white p-0 rounded dark:bg-gray-900 dark:text-white"
-      >
-        <select
-          name="customer_id"
-          value={newDebt.customer_id}
-          onChange={handleNewChange}
-          required
-          className="p-2 border rounded dark:bg-gray-900 dark:text-white"
+    <div className="w-full max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 sm:p-6 border border-slate-200 dark:border-slate-700 shadow-sm">
+        <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mb-5 sm:mb-6">
+          Add New Debt
+        </h2>
+        <form
+          onSubmit={handleAddDebt}
+          className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 w-full"
         >
-          <option value="">Select Customer</option>
-          {customers.map(c => (
-            <option key={c.id} value={c.id}>{c.fullname}</option>
-          ))}
-        </select>
+          <select
+            name="customer_id"
+            value={newDebt.customer_id}
+            onChange={handleNewChange}
+            required
+            className="w-full px-4 py-3 sm:py-3.5 text-sm sm:text-base border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-medium appearance-none"
+          >
+            <option value="">Select Customer</option>
+            {customers.map(c => (
+              <option key={c.id} value={c.id}>{c.fullname}</option>
+            ))}
+          </select>
 
-        
-        <input
-          type="number"
-          name="amount_owed"
-          placeholder="Amount Owed"
-          step="0.01"
-          value={newDebt.amount_owed}
-          onChange={handleNewChange}
-          required
-          className="p-2 border rounded dark:bg-gray-900 dark:text-white"
-        />
+          <input
+            type="number"
+            name="amount_owed"
+            placeholder="Amount Owed"
+            step="0.01"
+            value={newDebt.amount_owed}
+            onChange={handleNewChange}
+            required
+            className="w-full px-4 py-3 sm:py-3.5 text-sm sm:text-base border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-medium placeholder-slate-400"
+          />
 
-        <button
-          type="submit"
-          className="col-span-full sm:col-span-1 bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700"
-        >
-          Add Debt
-        </button>
-      </form>
+          <button
+            type="submit"
+            className="w-full py-3 sm:py-3.5 px-4 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-500/30 transition-all shadow-md active:scale-[0.98]"
+          >
+            Add Debt
+          </button>
+        </form>
+      </div>
 
-         
-
-   
       <DebtPaymentManager key={Date.now()} />
     </div>
   );

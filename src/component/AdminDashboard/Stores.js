@@ -11,10 +11,10 @@ import {
   Store,
   Mail,
   Phone,
-
   Filter,
   Check,
-  X
+  X,
+  Layers
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -25,9 +25,14 @@ export default function Stores() {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({});
   const [isLoading, setIsLoading] = useState(true);
+  
+  const [plans, setPlans] = useState(['FREE', 'PREMIUM', 'BUSINESS']);
+  const [bulkAssignMode, setBulkAssignMode] = useState(false);
+  const [bulkPlan, setBulkPlan] = useState('');
 
   useEffect(() => {
     fetchStores();
+    fetchPlans();
   }, []);
 
   useEffect(() => {
@@ -44,22 +49,40 @@ export default function Stores() {
     }
   }, [search, stores]);
 
+  async function fetchPlans() {
+    const { data } = await supabase.from('subscription_plans').select('name');
+    if (data && data.length > 0) {
+      setPlans(data.map(p => p.name));
+    }
+  }
+
   async function fetchStores() {
     setIsLoading(true);
-    const { data, error } = await supabase
+    const { data: storesData, error: storesError } = await supabase
       .from('stores')
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (!error) {
-      setStores(data);
-      setFiltered(data);
+    const { data: subsData } = await supabase
+      .from('subscriptions')
+      .select('store_id, plan_name')
+      .eq('status', 'active');
+
+    if (!storesError) {
+      const storesWithPlan = storesData.map(store => {
+        const sub = subsData?.find(s => s.store_id === store.id);
+        return {
+          ...store,
+          current_plan: sub ? sub.plan_name : (store.premium ? 'PREMIUM' : 'FREE')
+        };
+      });
+      setStores(storesWithPlan);
+      setFiltered(storesWithPlan);
     }
     setIsLoading(false);
   }
 
   const toggleStatus = async (s) => {
-
     await supabase.from('stores').update({ is_active: !s.is_active }).eq('id', s.id);
     fetchStores();
   };
@@ -76,20 +99,55 @@ export default function Stores() {
       shop_name: s.shop_name,
       full_name: s.full_name,
       email_address: s.email_address,
-      phone_number: s.phone_number
+      phone_number: s.phone_number,
+      plan_name: s.current_plan
     });
   };
 
   const saveEdit = async () => {
-    await supabase.from('stores').update(form).eq('id', editing.id);
+    const storeUpdate = { ...form };
+    const planToAssign = storeUpdate.plan_name;
+    delete storeUpdate.plan_name;
+
+    // Update store details
+    await supabase.from('stores').update(storeUpdate).eq('id', editing.id);
+
+    // Update or Insert Subscription if changed
+    if (planToAssign && planToAssign !== editing.current_plan) {
+      await supabase.from('subscriptions').update({ status: 'cancelled' }).eq('store_id', editing.id).eq('status', 'active');
+      await supabase.from('subscriptions').insert({
+        store_id: editing.id,
+        plan_name: planToAssign,
+        status: 'active'
+      });
+    }
+
     setEditing(null);
     fetchStores();
   };
 
+  const handleBulkAssign = async () => {
+    if (!bulkPlan) return;
+    if (!window.confirm(`Assign "${bulkPlan}" plan to ALL ${filtered.length} currently filtered stores?`)) return;
+    
+    setIsLoading(true);
+    for (const s of filtered) {
+      if (s.current_plan !== bulkPlan) {
+        await supabase.from('subscriptions').update({ status: 'cancelled' }).eq('store_id', s.id).eq('status', 'active');
+        await supabase.from('subscriptions').insert({ store_id: s.id, plan_name: bulkPlan, status: 'active' });
+      }
+    }
+    setIsLoading(false);
+    setBulkAssignMode(false);
+    setBulkPlan('');
+    fetchStores();
+    alert('Bulk assignment complete!');
+  };
+
   const exportCSV = () => {
-    let csv = "data:text/csv;charset=utf-8,Shop Name,Owner,Email,Status,Date\n";
+    let csv = "data:text/csv;charset=utf-8,Shop Name,Owner,Email,Status,Plan,Date\n";
     filtered.forEach(s => {
-      csv += `${s.shop_name},${s.full_name},${s.email_address},${s.is_active ? 'Active' : 'Suspended'},${s.created_at}\n`;
+      csv += `${s.shop_name},${s.full_name},${s.email_address},${s.is_active ? 'Active' : 'Suspended'},${s.current_plan},${s.created_at}\n`;
     });
     const link = document.createElement('a');
     link.href = encodeURI(csv);
@@ -112,9 +170,11 @@ export default function Stores() {
           />
         </div>
 
-        <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 px-5 py-3 bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-300 rounded-2xl text-sm font-bold hover:bg-gray-100 transition-all border border-gray-100 dark:border-gray-700">
-            <Filter size={16} /> Filter
+        <div className="flex flex-wrap items-center gap-3">
+          <button 
+            onClick={() => setBulkAssignMode(true)}
+            className="flex items-center gap-2 px-5 py-3 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-2xl text-sm font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-all border border-indigo-100 dark:border-indigo-800">
+            <Layers size={16} /> Bulk Assign Plan
           </button>
           <button
             onClick={exportCSV}
@@ -125,6 +185,59 @@ export default function Stores() {
         </div>
       </div>
 
+      {/* Bulk Assign Modal */}
+      <AnimatePresence>
+        {bulkAssignMode && (
+          <div
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm shadow-2xl"
+            onClick={() => setBulkAssignMode(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 50, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 50, scale: 0.95 }}
+              onClick={e => e.stopPropagation()}
+              className="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-800 flex flex-col p-6 sm:p-8"
+            >
+              <h2 className="text-xl font-black text-gray-900 dark:text-white mb-2">Bulk Assign Plan</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+                Assign a specific subscription plan to {filtered.length} currently filtered stores.
+              </p>
+              
+              <div className="space-y-2 mb-8">
+                <label className="text-xs font-bold text-slate-600 dark:text-slate-400 mb-1 block ml-1">Select Target Plan</label>
+                <select
+                  value={bulkPlan}
+                  onChange={e => setBulkPlan(e.target.value)}
+                  className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-indigo-500/20 focus:bg-white dark:focus:bg-slate-800 rounded-xl text-sm font-bold outline-none dark:text-white"
+                >
+                  <option value="" disabled>Select a plan...</option>
+                  {plans.map(p => (
+                    <option key={p} value={p}>{p}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setBulkAssignMode(false)}
+                  className="flex-1 px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-slate-50 transition-all text-center"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleBulkAssign}
+                  disabled={!bulkPlan || isLoading}
+                  className="flex-1 px-4 py-3 bg-indigo-600 text-white rounded-xl text-xs font-black uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed hover:bg-indigo-700 shadow-xl transition-all active:scale-95 text-center"
+                >
+                  Assign to All
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       {/* Stores Table Card */}
       <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
         <div className="overflow-x-auto custom-scrollbar">
@@ -133,8 +246,8 @@ export default function Stores() {
               <tr className="bg-gray-50/50 dark:bg-gray-800/50 border-b border-gray-100 dark:border-gray-800">
                 <th className="px-8 py-5 text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em]">Store Entity</th>
                 <th className="px-8 py-5 text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em]">Primary Contact</th>
+                <th className="px-8 py-5 text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em]">Plan</th>
                 <th className="px-8 py-5 text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em]">Operational Status</th>
-                <th className="px-8 py-5 text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em]">Onboarding Date</th>
                 <th className="px-8 py-5 text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] text-right">Actions</th>
               </tr>
             </thead>
@@ -170,6 +283,11 @@ export default function Stores() {
                       </div>
                     </td>
                     <td className="px-8 py-5">
+                      <span className="px-3 py-1 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-400 rounded-lg text-xs font-bold uppercase tracking-wider">
+                        {s.current_plan || 'FREE'}
+                      </span>
+                    </td>
+                    <td className="px-8 py-5">
                       <div className="flex items-center gap-2">
                         <div className={`w-2 h-2 rounded-full ${s.is_active ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`} />
                         <span className={`text-[10px] font-black px-2.5 py-1 rounded-full tracking-wider uppercase ${s.is_active
@@ -179,9 +297,6 @@ export default function Stores() {
                           {s.is_active ? 'Active' : 'Suspended'}
                         </span>
                       </div>
-                    </td>
-                    <td className="px-8 py-5 text-sm font-bold text-gray-500 dark:text-gray-400 tabular-nums">
-                      {new Date(s.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                     </td>
                     <td className="px-8 py-5">
                       <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -238,7 +353,6 @@ export default function Stores() {
               onClick={e => e.stopPropagation()}
               className="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-800 flex flex-col relative mb-20"
             >
-              {/* Modal Header */}
               <div className="flex items-center justify-between p-6 sm:p-8 border-b border-gray-50 dark:border-slate-800 bg-white dark:bg-slate-900 z-10 rounded-t-2xl">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
@@ -257,7 +371,6 @@ export default function Stores() {
                 </button>
               </div>
 
-              {/* Form Content */}
               <div className="p-6 sm:p-8 space-y-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   {[
@@ -280,6 +393,24 @@ export default function Stores() {
                       </div>
                     </div>
                   ))}
+                  
+                  {/* Plan Assignment Selection */}
+                  <div className="space-y-2 sm:col-span-2">
+                    <label className="text-xs font-bold text-slate-600 dark:text-slate-400 mb-1.5 block ml-1">Subscription Plan</label>
+                    <div className="relative group">
+                      <Layers className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-500 transition-colors" size={16} />
+                      <select
+                        value={form.plan_name || ''}
+                        onChange={e => setForm({ ...form, plan_name: e.target.value })}
+                        className="w-full pl-12 pr-4 py-3.5 bg-slate-50 dark:bg-slate-800 border-2 border-transparent focus:border-indigo-500/20 focus:bg-white dark:focus:bg-slate-800 rounded-xl text-sm font-bold transition-all outline-none dark:text-white"
+                      >
+                        <option value="" disabled>Select a plan...</option>
+                        {plans.map(p => (
+                          <option key={p} value={p}>{p}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="p-5 bg-indigo-50 dark:bg-indigo-900/10 rounded-2xl border border-indigo-100 dark:border-indigo-800/50">
@@ -295,7 +426,6 @@ export default function Stores() {
                 </div>
               </div>
 
-              {/* Action Footer */}
               <div className="p-6 sm:p-8 bg-gray-50/50 dark:bg-slate-800/30 border-t border-gray-100 dark:border-slate-800 flex flex-col sm:flex-row gap-3 rounded-b-2xl">
                 <button
                   onClick={() => setEditing(null)}

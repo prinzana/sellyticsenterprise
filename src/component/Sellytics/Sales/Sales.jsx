@@ -123,7 +123,7 @@ export default function Tracker() {
           storeData?.plan || PLANS.FREE,
           sub || storeData?.created_at
         );
-        
+
         setCurrentPlan(effective);
       } catch (err) {
         console.error('Plan fetch error:', err);
@@ -521,10 +521,14 @@ export default function Tracker() {
 
   if (isLoading && sales.length === 0) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900">
-        <Loader2 className="w-10 h-10 animate-spin text-indigo-600" />
-        <p className="mt-4 text-slate-500">Loading checkout...</p>
-        <toast position="top-right" autoClose={3000} />
+      <div className="flex items-center justify-center min-h-screen bg-slate-50 dark:bg-slate-900">
+        <div className="text-center">
+          <div className="relative">
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-indigo-100 dark:border-indigo-900 border-t-indigo-600 dark:border-t-indigo-500 mx-auto mb-4"></div>
+            <div className="absolute inset-0 rounded-full h-16 w-16 border-4 border-transparent border-t-purple-400 dark:border-t-purple-500 animate-spin mx-auto" style={{ animationDuration: '1.5s' }}></div>
+          </div>
+          <p className="text-slate-600 dark:text-slate-400 font-medium">Loading checkout...</p>
+        </div>
       </div>
     );
   }

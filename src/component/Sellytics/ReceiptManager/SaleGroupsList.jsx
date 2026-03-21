@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Package, Table, LayoutGrid, Trash2, CheckSquare, Square } from 'lucide-react';
+import { Package, Table, LayoutGrid, Trash2, CheckSquare, Square, Edit } from 'lucide-react';
 import { useCurrency } from '../../context/currencyContext';
 
 const VIEW_MODES = {
@@ -22,7 +22,9 @@ export default function SaleGroupsList({
   onPageChange,
   itemsPerPage = 20,
   currentPlan,
-  onLock
+  onLock,
+  onEditGroup,
+  onBulkDelete
 }) {
   const { formatPrice } = useCurrency();
 
@@ -99,9 +101,21 @@ export default function SaleGroupsList({
           )}
 
           {selectedIds.length > 0 && (
-            <span className="px-3 py-1.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-lg text-sm font-semibold">
-              {selectedIds.length} selected
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="px-3 py-1.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-lg text-sm font-semibold">
+                {selectedIds.length} selected
+              </span>
+              {canDelete && onBulkDelete && (
+                <button
+                  onClick={onBulkDelete}
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white rounded-lg transition-all font-semibold text-sm shadow-sm shadow-red-500/20"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span className="hidden sm:inline">Delete Selected</span>
+                  <span className="sm:hidden">Delete</span>
+                </button>
+              )}
+            </div>
           )}
         </div>
 
@@ -164,9 +178,7 @@ export default function SaleGroupsList({
                 <th className="text-left px-3 sm:px-6 py-4 font-semibold text-slate-700 dark:text-slate-300 whitespace-nowrap">Amount</th>
                 <th className="hidden lg:table-cell text-left px-3 sm:px-6 py-4 font-semibold text-slate-700 dark:text-slate-300 whitespace-nowrap">Payment</th>
                 <th className="hidden sm:table-cell text-left px-3 sm:px-6 py-4 font-semibold text-slate-700 dark:text-slate-300 whitespace-nowrap">Date</th>
-                {canDelete && (
-                  <th className="text-left px-3 sm:px-6 py-4 font-semibold text-slate-700 dark:text-slate-300 whitespace-nowrap">Actions</th>
-                )}
+                <th className="text-left px-3 sm:px-6 py-4 font-semibold text-slate-700 dark:text-slate-300 whitespace-nowrap">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -242,20 +254,35 @@ export default function SaleGroupsList({
                           minute: '2-digit'
                         })}
                       </td>
-                      {canDelete && (
-                        <td className="px-3 sm:px-6 py-4">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (currentPlan === 'FREE') onLock('feature_locked');
-                              else onToggleSelect(group.id);
-                            }}
-                            className={`p-2 rounded-lg transition-colors ${currentPlan === 'FREE' ? 'text-slate-300' : 'text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20'}`}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </td>
-                      )}
+                      <td className="px-3 sm:px-6 py-4">
+                        <div className="flex items-center gap-1.5 sm:gap-2">
+                          {onEditGroup && (
+                            <button
+                               onClick={(e) => {
+                                 e.stopPropagation();
+                                 onEditGroup(group);
+                               }}
+                               className="p-2 rounded-lg transition-colors text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20"
+                               title="Edit Sale"
+                            >
+                               <Edit className="w-4 h-4" />
+                            </button>
+                          )}
+                          {canDelete && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (currentPlan === 'FREE') onLock('feature_locked');
+                                else onToggleSelect(group.id);
+                              }}
+                              className={`p-2 rounded-lg transition-colors ${currentPlan === 'FREE' ? 'text-slate-300' : 'text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20'}`}
+                              title="Delete Sale"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      </td>
                     </motion.tr>
                   );
                 })}
@@ -265,9 +292,9 @@ export default function SaleGroupsList({
         </div>
       )}
 
-      {/* Mobile Table View - Card-like rows on mobile */}
+      {/* Mobile Table View - Compact list rows on mobile */}
       {viewMode === VIEW_MODES.TABLE && (
-        <div className="md:hidden space-y-3">
+        <div className="md:hidden -mx-4 sm:mx-0 flex flex-col divide-y divide-slate-100 dark:divide-slate-800/60 sm:space-y-3 sm:divide-y-0">
           <AnimatePresence>
             {paginatedGroups.map((group, idx) => {
               const isSelected = selectedIds.includes(group.id);
@@ -279,69 +306,80 @@ export default function SaleGroupsList({
                   transition={{ delay: idx * 0.02 }}
                   onClick={() => onSelectGroup(group)}
                   className={`
-                    relative p-4 rounded-xl border-2 transition-all cursor-pointer
+                    relative p-3 sm:p-4 transition-all cursor-pointer sm:rounded-xl sm:border-2
                     ${selectedGroup?.id === group.id
-                      ? 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-500'
+                      ? 'bg-indigo-50 dark:bg-indigo-900/20 sm:border-indigo-500'
                       : isSelected
-                        ? 'bg-blue-50 dark:bg-blue-900/10 border-blue-400'
-                        : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-indigo-300'
+                        ? 'bg-blue-50 dark:bg-blue-900/10 sm:border-blue-400'
+                        : 'bg-white dark:bg-slate-900 sm:border-slate-200 dark:sm:border-slate-700 hover:sm:border-indigo-300'
                     }
                   `}
                 >
-                  {canDelete && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (currentPlan === 'FREE') onLock('feature_locked');
-                        else onToggleSelect(group.id);
-                      }}
-                      className="absolute top-3 right-3 hover:bg-slate-100 dark:hover:bg-slate-700 p-1.5 rounded-lg transition-colors"
-                    >
-                      <div className="relative">
-                        {isSelected ?
-                          <CheckSquare className="w-5 h-5 text-indigo-600" /> :
-                          <Square className="w-5 h-5 text-slate-400" />
-                        }
-                        {currentPlan === 'FREE' && (
-                          <div className="absolute -top-1 -right-1">
-                            <svg className="w-2.5 h-2.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4">
-                              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                            </svg>
-                          </div>
-                        )}
-                      </div>
-                    </button>
-                  )}
+                  <div className="flex gap-2 items-center absolute top-1/2 -translate-y-1/2 right-2 sm:right-3 z-10">
+                    {onEditGroup && (
+                      <button
+                        onClick={(e) => {
+                           e.stopPropagation();
+                           onEditGroup(group);
+                        }}
+                        className="p-1.5 sm:p-2 rounded-lg text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-900/30 transition-colors bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700"
+                        title="Edit Sale"
+                      >
+                         <Edit className="w-4 h-4" />
+                      </button>
+                    )}
+                    {canDelete && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (currentPlan === 'FREE') onLock('feature_locked');
+                          else onToggleSelect(group.id);
+                        }}
+                        className="p-1.5 sm:p-2 rounded-lg text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700"
+                        title="Delete Sale"
+                      >
+                        <div className="relative">
+                          {isSelected ?
+                            <CheckSquare className="w-4 h-4 text-red-600" /> :
+                            <Trash2 className="w-4 h-4" />
+                          }
+                          {currentPlan === 'FREE' && (
+                            <div className="absolute -top-1 -right-1 bg-white dark:bg-slate-800 rounded-full">
+                               <svg className="w-2h-2 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
+                      </button>
+                    )}
+                  </div>
 
-                  <div className="space-y-3 pr-12">
-                    <div className="flex items-center gap-2">
-                      <Package className="w-4 h-4 text-indigo-600 flex-shrink-0" />
-                      <span className="font-semibold text-slate-900 dark:text-white">Sale #{group.id}</span>
-                    </div>
-
-                    <div className="flex items-baseline gap-2 min-w-0">
-                      <span className="text-xs text-slate-600 dark:text-slate-400 font-medium flex-shrink-0">Amount:</span>
-                      <span className="text-sm sm:text-base font-bold text-emerald-600 dark:text-emerald-400 truncate" title={formatPrice(group.total_amount)}>
-                        {formatPrice(group.total_amount)}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <span className="px-2 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded text-xs font-semibold uppercase">
-                        {group.payment_method}
-                      </span>
-                    </div>
-
-                    <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                      {new Date(group.created_at).toLocaleDateString('en-US', {
-                        weekday: 'short',
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </div>
+                  <div className="flex items-center gap-3 pr-[4.5rem] sm:pr-24">
+                     <div className="w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center">
+                       <Package className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-500 dark:text-indigo-400" />
+                     </div>
+                     
+                     <div className="flex-1 min-w-0 flex flex-col justify-center gap-1">
+                        <div className="flex items-center justify-between gap-2 w-full">
+                          <span className="font-bold text-[13px] sm:text-base text-slate-900 dark:text-white truncate">Sale #{group.id}</span>
+                          <span className="text-[13px] sm:text-base font-black text-slate-900 dark:text-white flex-shrink-0">
+                            {formatPrice(group.total_amount)}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between gap-1 w-full">
+                          <span className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium truncate">
+                            {new Date(group.created_at).toLocaleDateString('en-US', {
+                              weekday: 'short', month: 'short', day: 'numeric',
+                              hour: '2-digit', minute: '2-digit'
+                            })}
+                          </span>
+                          <span className="px-1.5 py-0.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800 text-[9px] sm:text-[10px] uppercase font-bold rounded flex-shrink-0">
+                            {group.payment_method}
+                          </span>
+                        </div>
+                     </div>
                   </div>
                 </motion.div>
               );
@@ -352,7 +390,7 @@ export default function SaleGroupsList({
 
       {/* Card View */}
       {viewMode === VIEW_MODES.CARD && (
-        <div className="space-y-3">
+        <div className="-mx-4 sm:mx-0 flex flex-col gap-0 border-y border-slate-100 dark:border-slate-800/60 sm:border-y-0 divide-y divide-slate-100 dark:divide-slate-800/60 sm:gap-4 sm:divide-y-0">
           <AnimatePresence>
             {paginatedGroups.map((group, index) => {
               const isSelected = selectedIds.includes(group.id);
@@ -366,78 +404,91 @@ export default function SaleGroupsList({
                   transition={{ delay: index * 0.02 }}
                   onClick={() => onSelectGroup(group)}
                   className={`
-                    relative p-4 sm:p-5 w-full
-                    bg-white dark:bg-slate-800
-                    rounded-2xl border-2 transition-all cursor-pointer shadow-sm hover:shadow-lg
+                    relative p-3.5 sm:p-5 w-full transition-all cursor-pointer
+                    bg-white dark:bg-slate-900
+                    sm:rounded-2xl sm:border-2 sm:shadow-sm sm:hover:shadow-lg
                     ${selectedGroup?.id === group.id
-                      ? 'border-indigo-500 ring-4 ring-indigo-500/20 dark:ring-indigo-500/30'
+                      ? 'bg-indigo-50/50 dark:bg-indigo-900/10 sm:border-indigo-500 sm:ring-4 ring-indigo-500/20'
                       : isSelected
-                        ? 'border-blue-400 ring-2 ring-blue-400/20'
-                        : 'border-slate-200 dark:border-slate-700 hover:border-indigo-300'
+                        ? 'bg-blue-50/50 dark:bg-blue-900/10 sm:border-blue-400 sm:ring-2 ring-blue-400/20'
+                        : 'sm:border-slate-200 dark:sm:border-slate-700 hover:sm:border-indigo-300 dark:hover:sm:border-indigo-600'
                     }
                   `}
                 >
-                  {canDelete && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (currentPlan === 'FREE') onLock('feature_locked');
-                        else onToggleSelect(group.id);
-                      }}
-                      className="absolute top-3 sm:top-4 right-3 sm:right-4 hover:bg-slate-100 dark:hover:bg-slate-700 p-2 rounded-lg transition-colors z-10"
-                    >
-                      <div className="relative">
-                        {isSelected ?
-                          <CheckSquare className="w-5 h-5 text-indigo-600" /> :
-                          <Square className="w-5 h-5 text-slate-400" />
-                        }
-                        {currentPlan === 'FREE' && (
-                          <div className="absolute -top-1 -right-1">
-                            <svg className="w-3 h-3 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4">
-                              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                            </svg>
-                          </div>
-                        )}
-                      </div>
-                    </button>
-                  )}
+                  <div className="flex gap-2 items-center absolute top-1/2 -translate-y-1/2 sm:top-4 sm:translate-y-0 right-2 sm:right-4 z-10">
+                    {onEditGroup && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEditGroup(group);
+                        }}
+                        className="p-1.5 sm:p-2 rounded-xl text-indigo-600 hover:text-indigo-700 bg-white dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors shadow-sm sm:shadow-md border border-slate-100 dark:border-slate-700"
+                        title="Edit Sale"
+                      >
+                        <Edit className="w-4 h-4 sm:w-5 sm:h-5" />
+                      </button>
+                    )}
+                    {canDelete && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (currentPlan === 'FREE') onLock('feature_locked');
+                          else onToggleSelect(group.id);
+                        }}
+                        className="p-1.5 sm:p-2 rounded-xl text-slate-500 hover:text-red-600 bg-white dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors shadow-sm sm:shadow-md border border-slate-100 dark:border-slate-700"
+                        title="Delete Sale"
+                      >
+                        <div className="relative">
+                          {isSelected ?
+                            <CheckSquare className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" /> :
+                            <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                          }
+                          {currentPlan === 'FREE' && (
+                            <div className="absolute -top-1 -right-1 bg-white dark:bg-slate-800 rounded-full">
+                              <svg className="w-2.5 h-2.5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
+                      </button>
+                    )}
+                  </div>
 
-                  <div className="flex items-start gap-3 sm:gap-4 pr-10 sm:pr-12">
-                    {/* Icon */}
-                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center flex-shrink-0 bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-lg">
-                      <Package className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+                  <div className="flex items-center gap-3 sm:gap-4 pr-[5.5rem] sm:pr-28 w-full">
+                    {/* Compact Icon on mobile, bigger on desktop */}
+                    <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center flex-shrink-0 bg-gradient-to-br from-indigo-500 to-purple-600 shadow-md">
+                      <Package className="w-5 h-5 sm:w-7 sm:h-7 text-white" />
                     </div>
 
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      {/* Title and Amount */}
-                      <div className="mb-2 sm:mb-3">
-                        <h3 className="font-bold text-base sm:text-lg text-slate-900 dark:text-white truncate">
+                    {/* Content Grouped Horizontally on Mobile for compact space */}
+                    <div className="flex-1 min-w-0 flex flex-col sm:block justify-center h-full">
+                      <div className="flex items-center sm:block justify-between gap-2 w-full">
+                        <h3 className="font-bold text-[13px] sm:text-lg text-slate-900 dark:text-white truncate flex-1">
                           Sale #{group.id}
                         </h3>
-                        <p className="text-base sm:text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 sm:mt-1 truncate" title={formatPrice(group.total_amount)}>
-                          {formatPrice(group.total_amount)}
+                        <p className="sm:hidden text-[13px] font-black text-slate-900 dark:text-white flex-shrink-0" title={formatPrice(group.total_amount)}>
+                           {formatPrice(group.total_amount)}
                         </p>
                       </div>
+                      
+                      {/* Desktop only price */}
+                      <p className="hidden sm:block text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-1 truncate" title={formatPrice(group.total_amount)}>
+                        {formatPrice(group.total_amount)}
+                      </p>
 
-                      {/* Payment Method Badge */}
-                      <div className="flex flex-wrap items-center gap-2 mb-2 sm:mb-3">
-                        <span className="px-2.5 sm:px-3 py-1 sm:py-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-lg text-xs font-semibold uppercase tracking-wide whitespace-nowrap">
-                          {group.payment_method}
-                        </span>
-                      </div>
-
-                      {/* Date */}
-                      <div className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium line-clamp-2">
-                        {new Date(group.created_at).toLocaleDateString('en-US', {
-                          weekday: 'short',
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
+                      <div className="flex items-center justify-between sm:justify-start gap-1.5 sm:gap-2 mt-1 sm:mt-3 w-full">
+                         <div className="text-[10px] sm:text-sm text-slate-500 dark:text-slate-400 font-medium truncate flex-1">
+                           {new Date(group.created_at).toLocaleDateString('en-US', {
+                             weekday: 'short', month: 'short', day: 'numeric',
+                             hour: '2-digit', minute: '2-digit'
+                           })}
+                         </div>
+                         <span className="text-slate-300 dark:text-slate-600 hidden sm:block">•</span>
+                         <span className="px-1.5 sm:px-3 py-0.5 sm:py-1.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800 rounded-md text-[9px] sm:text-xs font-bold uppercase tracking-wide flex-shrink-0">
+                           {group.payment_method}
+                         </span>
                       </div>
                     </div>
                   </div>

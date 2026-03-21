@@ -79,12 +79,11 @@ export function CurrencyProvider({ children }) {
 
     // NORMAL FORMATTING (NO SHORTENING)
     try {
-      return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: preferredCurrency.code,
+      const formattedNum = new Intl.NumberFormat('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       }).format(numPrice);
+      return `${symbol}${formattedNum}`;
     } catch {
       // Fallback
       return `${symbol}${numPrice.toLocaleString('en-US', {

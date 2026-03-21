@@ -43,10 +43,11 @@ const opsTools = [
   },
 ];
 
-export default function AdminOps() {
+export default function AdminOps({ isStoreUser = false }) {
   const { userPlan, registrationDate } = useDashboardAccess();
   const [shopName, setShopName] = useState('Store Admin');
   const [activeTool, setActiveTool] = useState(null);
+  const [userRole, setUserRole] = useState('owner');
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
@@ -59,6 +60,7 @@ export default function AdminOps() {
       try {
         const storeId = localStorage.getItem('store_id');
         const userId = localStorage.getItem('user_id');
+        const ownerId = localStorage.getItem('owner_id');
         const userAccessRaw = localStorage.getItem('user_access');
         let hasPremiumAccess = false;
         let fetchedShopName = 'Store Admin';
@@ -68,6 +70,23 @@ export default function AdminOps() {
           setIsAuthorized(false);
           setIsLoading(false);
           return;
+        }
+
+        // Fetch user role for specific tool restrictions
+        if (ownerId) {
+          setUserRole('owner');
+        } else if (userId && storeId) {
+          const { data: roleData } = await supabase
+            .from('store_users')
+            .select('role')
+            .eq('id', userId)
+            .eq('store_id', storeId)
+            .single();
+          if (roleData && roleData.role) {
+            setUserRole(roleData.role.toLowerCase().trim());
+          } else {
+            setUserRole('employee'); // default fallback
+          }
         }
 
         if (storeId) {
@@ -158,14 +177,18 @@ export default function AdminOps() {
       setErrorMessage(`Access Denied: ${tool.label} is a premium feature. Please upgrade to the ${tool.featureKey === 'MULTI_STORE' ? 'Business' : 'Premium'} Plan.`);
       return;
     }
+
     setActiveTool(key);
     setErrorMessage('');
   };
 
-  const filteredTools = opsTools.filter((tool) =>
-    tool.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    tool.desc.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredTools = opsTools.filter((tool) => {
+    // If the component is rendered inside the Store Users dashboard, entirely hide the Team Management module
+    if (tool.key === 'team' && isStoreUser) return false;
+    
+    return tool.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+           tool.desc.toLowerCase().includes(searchQuery.toLowerCase());
+  });
 
   const renderContent = () => {
     if (isLoading) {

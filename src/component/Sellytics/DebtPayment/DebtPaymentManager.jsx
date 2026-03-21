@@ -7,7 +7,7 @@ import { useCurrency } from '../../context/currencyContext';
 import DebtListItem from './DebtListItem';
 import RecordPaymentModal from './RecordPaymentModal';
 import PaymentHistoryModal from './PaymentHistoryModal';
-
+import SearchInput from '../ui/SearchInput';
 
 export default function DebtPaymentManager() {
   const storeId = localStorage.getItem('store_id');
@@ -84,53 +84,50 @@ export default function DebtPaymentManager() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-4 space-y-8">
-    
-    
+    <div className="w-full space-y-6">
+
       {/* Search */}
-      <input
-        type="text"
-        placeholder="Search customer..."
+      <SearchInput
         value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="w-full max-w-md mx-auto block px-5 py-3 border border-slate-300 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:bg-slate-800"
+        onChange={setSearch}
+        placeholder="Search customer..."
       />
 
       {/* Loading / Empty */}
 
-{loading ? (
-  <div className="text-center py-12 text-slate-500">Loading debts...</div>
-) : enrichedDebts.length === 0 ? (
-  <div className="text-center py-16 text-slate-500">
-    <p className="text-xl font-medium">No debts found</p>
-  </div>
-) : (
-  <div className="space-y-6">
-    {enrichedDebts.map((debt) => (
-      <DebtListItem
-        key={debt.id}
-        debt={debt}
-        formatPrice={formatPrice}
-        onRecordPayment={() => {
-          setSelectedDebt(debt);
-          setShowPaymentModal(true);
-        }}
-        onViewHistory={() => {
-          setSelectedDebt(debt);
-          setShowHistoryModal(true);
-        }}
-        canDelete={permissions.canDelete}
-        onDelete={async () => {
-          if (!window.confirm(`Delete debt for ${debt.customer_name}?`)) return;
-          await supabase.from('debt_tracker').delete().eq('id', debt.id);
-          toast.success('Debt deleted');
-          fetchDebts();
-          fetchPayments();
-        }}
-      />
-    ))}
-  </div>
-)}
+      {loading ? (
+        <div className="text-center py-12 text-slate-500">Loading debts...</div>
+      ) : enrichedDebts.length === 0 ? (
+        <div className="text-center py-16 text-slate-500">
+          <p className="text-xl font-medium">No debts found</p>
+        </div>
+      ) : (
+        <div className="-mx-4 sm:mx-0 flex flex-col border-y border-slate-200 dark:border-slate-800 sm:border-y-0 sm:space-y-4 pb-4 sm:pb-0">
+          {enrichedDebts.map((debt) => (
+            <DebtListItem
+              key={debt.id}
+              debt={debt}
+              formatPrice={formatPrice}
+              onRecordPayment={() => {
+                setSelectedDebt(debt);
+                setShowPaymentModal(true);
+              }}
+              onViewHistory={() => {
+                setSelectedDebt(debt);
+                setShowHistoryModal(true);
+              }}
+              canDelete={permissions.canDelete}
+              onDelete={async () => {
+                if (!window.confirm(`Delete debt for ${debt.customer_name}?`)) return;
+                await supabase.from('debt_tracker').delete().eq('id', debt.id);
+                toast.success('Debt deleted');
+                fetchDebts();
+                fetchPayments();
+              }}
+            />
+          ))}
+        </div>
+      )}
       {/* Modals */}
       {showPaymentModal && selectedDebt && (
         <RecordPaymentModal

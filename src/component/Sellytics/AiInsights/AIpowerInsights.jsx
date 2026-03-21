@@ -285,8 +285,8 @@ export default function Insights() {
                   key={tool.key}
                   onClick={() => isAccessible && handleToolClick(tool.key)}
                   className={`group relative bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-3 transition-all duration-200 ${isAccessible
-                      ? 'cursor-pointer hover:shadow-md hover:shadow-indigo-500/10 hover:-translate-y-0.5 hover:border-indigo-400 dark:hover:border-indigo-600'
-                      : 'cursor-not-allowed opacity-50'
+                    ? 'cursor-pointer hover:shadow-md hover:shadow-indigo-500/10 hover:-translate-y-0.5 hover:border-indigo-400 dark:hover:border-indigo-600'
+                    : 'cursor-not-allowed opacity-50'
                     }`}
                 >
                   {!tool.isFreemium && (

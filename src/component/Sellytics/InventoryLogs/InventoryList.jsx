@@ -154,7 +154,7 @@ export default function InventoryList({
 
       {/* Inventory Grid */}
       {!loading && items.length > 0 && (
-        <div className="grid gap-3">
+        <div className="-mx-4 sm:mx-0 grid gap-0 sm:gap-4">
           <AnimatePresence mode="popLayout">
             {items.map(item => (
               <motion.div

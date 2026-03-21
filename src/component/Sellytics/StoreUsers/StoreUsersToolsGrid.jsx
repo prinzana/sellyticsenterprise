@@ -15,6 +15,7 @@ export default function StoreUsersToolsGrid({
   handleToolClick,
   allowedFeatures,
   isPremium,
+  userPlan,
 }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -57,7 +58,7 @@ export default function StoreUsersToolsGrid({
                 ACCOUNT
               </p>
               <p className="text-sm font-bold text-slate-900 dark:text-white mt-1">
-                {isPremium ? 'Premium Access' : 'Free'}
+                {userPlan === 'BUSINESS' ? 'Business Access' : isPremium ? 'Premium Access' : 'Free Access'}
               </p>
             </div>
             <div className="w-12 h-12 bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950 dark:to-amber-900 rounded-xl flex items-center justify-center">

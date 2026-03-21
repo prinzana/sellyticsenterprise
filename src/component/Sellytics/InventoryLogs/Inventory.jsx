@@ -329,9 +329,14 @@ export default function Inventory() {
   // Loading state
   if (loading && inventory.length === 0) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900">
-        <Loader2 className="w-10 h-10 animate-spin text-indigo-600" />
-        <p className="mt-4 text-slate-500">Loading inventory...</p>
+      <div className="flex items-center justify-center min-h-screen bg-slate-50 dark:bg-slate-900">
+        <div className="text-center">
+          <div className="relative">
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-indigo-100 dark:border-indigo-900 border-t-indigo-600 dark:border-t-indigo-500 mx-auto mb-4"></div>
+            <div className="absolute inset-0 rounded-full h-16 w-16 border-4 border-transparent border-t-purple-400 dark:border-t-purple-500 animate-spin mx-auto" style={{ animationDuration: '1.5s' }}></div>
+          </div>
+          <p className="text-slate-600 dark:text-slate-400 font-medium">Loading inventory...</p>
+        </div>
         <Toaster position="top-right" />
       </div>
     );
@@ -491,7 +496,7 @@ export default function Inventory() {
             </div>
 
             {/* Inventory List */}
-            <div className="space-y-3">
+            <div className="-mx-4 sm:mx-0 flex flex-col sm:space-y-3 border-y border-slate-200 dark:border-slate-800 sm:border-y-0 pb-4 sm:pb-0">
               <AnimatePresence mode="popLayout">
                 {paginatedItems.length === 0 ? (
                   <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-12 text-center">

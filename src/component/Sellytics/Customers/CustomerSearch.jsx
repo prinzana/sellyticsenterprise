@@ -1,17 +1,15 @@
-// src/components/Customers/CustomerSearch.jsx
 import React from 'react';
+import SearchInput from '../ui/SearchInput';
 
 export default function CustomerSearch({ searchTerm, setSearchTerm, resetPage }) {
   return (
-    <input
-      type="text"
-      placeholder="Search by name..."
+    <SearchInput
       value={searchTerm}
-      onChange={(e) => {
-        setSearchTerm(e.target.value);
+      onChange={(val) => {
+        setSearchTerm(val);
         resetPage();
       }}
-      className="w-full px-5 py-3 border border-slate-300 dark:border-slate-600 rounded-xl focus:ring-2 focus:ring-indigo-500 dark:bg-slate-800"
+      placeholder="Search by name..."
     />
   );
 }

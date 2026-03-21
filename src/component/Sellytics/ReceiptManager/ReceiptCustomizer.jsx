@@ -14,10 +14,10 @@ export default function ReceiptCustomizer({ styles, updateStyle, resetStyles, cu
   };
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-2xl border-2 border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+    <div className="bg-white dark:bg-slate-800 sm:rounded-2xl border-y sm:border border-slate-200 dark:border-slate-700 shadow-sm -mx-4 sm:mx-0 overflow-hidden">
       <button
         onClick={handleToggle}
-        className="w-full flex items-center justify-between p-4 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+        className="w-full flex items-center justify-between p-5 sm:p-6 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
       >
         <div className="flex items-center gap-3">
           <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${currentPlan === 'FREE' ? 'bg-slate-100 text-slate-400' : 'bg-gradient-to-br from-purple-500 to-pink-600 text-white'}`}>
@@ -61,13 +61,13 @@ export default function ReceiptCustomizer({ styles, updateStyle, resetStyles, cu
                     type="color"
                     value={styles.headerBgColor}
                     onChange={(e) => updateStyle('headerBgColor', e.target.value)}
-                    className="w-16 h-12 rounded-lg cursor-pointer border-2 border-slate-300 dark:border-slate-600"
+                    className="w-16 h-12 rounded-lg cursor-pointer border border-slate-200 dark:border-slate-700"
                   />
                   <input
                     type="text"
                     value={styles.headerBgColor}
                     onChange={(e) => updateStyle('headerBgColor', e.target.value)}
-                    className="flex-1 px-4 py-2 rounded-lg border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 font-mono text-sm"
+                    className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 font-mono text-sm"
                   />
                 </div>
               </div>
@@ -82,13 +82,13 @@ export default function ReceiptCustomizer({ styles, updateStyle, resetStyles, cu
                     type="color"
                     value={styles.headerTextColor}
                     onChange={(e) => updateStyle('headerTextColor', e.target.value)}
-                    className="w-16 h-12 rounded-lg cursor-pointer border-2 border-slate-300 dark:border-slate-600"
+                    className="w-16 h-12 rounded-lg cursor-pointer border border-slate-200 dark:border-slate-700"
                   />
                   <input
                     type="text"
                     value={styles.headerTextColor}
                     onChange={(e) => updateStyle('headerTextColor', e.target.value)}
-                    className="flex-1 px-4 py-2 rounded-lg border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 font-mono text-sm"
+                    className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 font-mono text-sm"
                   />
                 </div>
               </div>
@@ -103,13 +103,13 @@ export default function ReceiptCustomizer({ styles, updateStyle, resetStyles, cu
                     type="color"
                     value={styles.accentColor}
                     onChange={(e) => updateStyle('accentColor', e.target.value)}
-                    className="w-16 h-12 rounded-lg cursor-pointer border-2 border-slate-300 dark:border-slate-600"
+                    className="w-16 h-12 rounded-lg cursor-pointer border border-slate-200 dark:border-slate-700"
                   />
                   <input
                     type="text"
                     value={styles.accentColor}
                     onChange={(e) => updateStyle('accentColor', e.target.value)}
-                    className="flex-1 px-4 py-2 rounded-lg border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 font-mono text-sm"
+                    className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 font-mono text-sm"
                   />
                 </div>
               </div>
@@ -122,7 +122,7 @@ export default function ReceiptCustomizer({ styles, updateStyle, resetStyles, cu
                 <select
                   value={styles.fontFamily}
                   onChange={(e) => updateStyle('fontFamily', e.target.value)}
-                  className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900"
+                  className="w-full px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 font-medium"
                 >
                   <option value="monospace">Monospace</option>
                   <option value="sans-serif">Sans Serif</option>
@@ -141,7 +141,7 @@ export default function ReceiptCustomizer({ styles, updateStyle, resetStyles, cu
                   value={styles.logoUrl}
                   onChange={(e) => updateStyle('logoUrl', e.target.value)}
                   placeholder="https://example.com/logo.png"
-                  className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900"
+                  className="w-full px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900"
                 />
               </div>
 

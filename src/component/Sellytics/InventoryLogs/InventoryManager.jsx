@@ -25,6 +25,7 @@ import HistoryPage from './HistoryPage';
 import EvaluationPage from './EvaluationPage';
 import NotificationPanel from './NotificationPanel';
 import BulkRestockModal from './BulkRestockModal';
+import SearchInput from '../ui/SearchInput';
 
 import inventoryService from './services/inventoryService';
 
@@ -390,16 +391,12 @@ export default function InventoryManager() {
               {/* Search & Filter Section */}
               <div className="space-y-1.5 sm:space-y-2 px-3 sm:px-4 md:px-6">
                 {/* Search Input */}
-                <div className="relative">
-                  <Search className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400 flex-shrink-0" />
-                  <input
-                    type="text"
-                    value={searchTerm}
-                    onChange={(e) => { setSearchTerm(e.target.value); resetPage(); }}
-                    placeholder="Search..."
-                    className="w-full pl-8 sm:pl-10 pr-2.5 sm:pr-3 py-1.5 sm:py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-[11px] sm:text-xs focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                  />
-                </div>
+                <SearchInput
+                  value={searchTerm}
+                  onChange={(val) => { setSearchTerm(val); resetPage(); }}
+                  placeholder="Search products..."
+                  className="py-2.5 sm:py-2.5"
+                />
 
                 {/* Stock Filters */}
                 <div className="flex items-center gap-1 overflow-x-auto pb-0.5">
