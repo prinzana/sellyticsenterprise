@@ -8,11 +8,16 @@ import {
   Edit3,
   Trash2,
   Search,
-
   ArrowUpDown,
   UserPlus,
   RefreshCcw,
-
+  X,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  MapPin,
+  Save
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -22,6 +27,60 @@ export default function OwnersManagement() {
   const [filteredStores, setFilteredStores] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [formData, setFormData] = useState({
+    shop_name: '',
+    email_address: '',
+    password: '',
+    business_address: '',
+  });
+
+  const arrayBufferToHex = (buffer) =>
+    Array.prototype.map.call(new Uint8Array(buffer), x => ('00' + x.toString(16)).slice(-2)).join('');
+
+  const hashPassword = async (plainText) => {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(plainText);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    return arrayBufferToHex(hashBuffer);
+  };
+
+  const handleCreateEntity = async (e) => {
+    e.preventDefault();
+    if (!formData.shop_name || !formData.email_address || !formData.password || !formData.business_address) {
+      alert("Please fill in all required fields.");
+      return;
+    }
+    setCreating(true);
+    try {
+      const hashedPassword = await hashPassword(formData.password);
+      const { error } = await supabase.from('stores').insert([{
+        shop_name: formData.shop_name,
+        full_name: "Unassigned",
+        email_address: formData.email_address,
+        password: hashedPassword,
+        business_address: formData.business_address,
+        is_active: true
+      }]);
+
+      if (error) {
+        if (error.message?.includes('stores_email_key') || error.code === '23505') {
+            throw new Error('This email is already registered to another store.');
+        }
+        throw error;
+      }
+      
+      setIsModalOpen(false);
+      setFormData({ shop_name: '', email_address: '', password: '', business_address: '' });
+      fetchData();
+    } catch (err) {
+      alert(err.message || 'Failed to add store');
+    } finally {
+      setCreating(false);
+    }
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -83,7 +142,7 @@ export default function OwnersManagement() {
           <button onClick={fetchData} className="p-3 bg-gray-50 dark:bg-gray-800 text-gray-500 rounded-2xl hover:bg-gray-100 transition-all border border-gray-100 dark:border-gray-700">
             <RefreshCcw size={18} className={loading ? 'animate-spin' : ''} />
           </button>
-          <button className="flex items-center gap-2 px-5 py-3 bg-indigo-600 text-white rounded-2xl text-sm font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-600/20 transition-all">
+          <button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2 px-5 py-3 bg-indigo-600 text-white rounded-2xl text-sm font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-600/20 transition-all">
             <UserPlus size={16} /> New Entity
           </button>
         </div>
@@ -171,6 +230,89 @@ export default function OwnersManagement() {
           <p className="text-gray-400 font-black uppercase tracking-widest text-xs">No matching entities found in the system</p>
         </div>
       )}
+
+      {/* Create Entity Modal */}
+      <AnimatePresence>
+        {isModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={() => setIsModalOpen(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 20 }}
+              onClick={e => e.stopPropagation()}
+              className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col border border-gray-100 dark:border-gray-800"
+            >
+              <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-gray-800">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 flex items-center justify-center">
+                    <Store size={20} />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-gray-900 dark:text-white">Create New Entity</h2>
+                    <p className="text-xs text-gray-400">Register a new store in the system</p>
+                  </div>
+                </div>
+                <button type="button" onClick={() => setIsModalOpen(false)} className="p-2 text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl transition-all">
+                  <X size={20} />
+                </button>
+              </div>
+
+              <form onSubmit={handleCreateEntity} className="p-6 space-y-5">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-bold text-gray-700 dark:text-gray-300">Entity Name <span className="text-red-500">*</span></label>
+                  <div className="relative">
+                    <Store className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                    <input type="text" required value={formData.shop_name} onChange={e => setFormData({...formData, shop_name: e.target.value})} className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-800 border-none rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none dark:text-white" placeholder="e.g. Apex Stores" />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-sm font-bold text-gray-700 dark:text-gray-300">Headquarters Address <span className="text-red-500">*</span></label>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-3 text-gray-400" size={16} />
+                    <textarea required rows={2} value={formData.business_address} onChange={e => setFormData({...formData, business_address: e.target.value})} className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-800 border-none rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none resize-none dark:text-white" placeholder="Physical Address" />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-sm font-bold text-gray-700 dark:text-gray-300">System Email <span className="text-red-500">*</span></label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                    <input type="email" required value={formData.email_address} onChange={e => setFormData({...formData, email_address: e.target.value})} className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-gray-800 border-none rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none dark:text-white" placeholder="store@example.com" />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-sm font-bold text-gray-700 dark:text-gray-300">Master Password <span className="text-red-500">*</span></label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                    <input type={showPassword ? "text" : "password"} required minLength={6} value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} className="w-full pl-10 pr-10 py-2.5 bg-gray-50 dark:bg-gray-800 border-none rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none dark:text-white" placeholder="Min. 6 characters" />
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="pt-2 flex items-center justify-end gap-3">
+                  <button type="button" onClick={() => setIsModalOpen(false)} className="px-5 py-2.5 text-sm font-bold text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors">
+                    Cancel
+                  </button>
+                  <button type="submit" disabled={creating} className="flex items-center gap-2 px-6 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700 shadow-lg shadow-indigo-600/20 transition-all disabled:opacity-50">
+                    {creating ? <RefreshCcw className="animate-spin" size={16} /> : <Save size={16} />}
+                    {creating ? 'Creating...' : 'Create Entity'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
