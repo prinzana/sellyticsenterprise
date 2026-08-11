@@ -16,7 +16,7 @@ import {
 } from 'react-icons/fa';
 import { supabase } from '../../supabaseClient';
 import useStoreUsersAccess from './StoreUsers/useStoreUsersAccess';
-import { setupRBAC, hasFeature } from '../../utils/planManager';
+import { hasFeature } from '../../utils/planManager';
 
 // Component Imports
 import StoreUsersTour from './StoreUsers/StoreUsersTour';
@@ -39,7 +39,6 @@ const Dashboard = () => {
   const {
     userPlan,
     registrationDate,
-    allowedFeatures,
     isLoading: isLoadingAccess
   } = useStoreUsersAccess();
 

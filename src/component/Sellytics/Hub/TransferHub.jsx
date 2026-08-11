@@ -48,8 +48,8 @@ export default function TransferHub() {
     <div className="space-y-6 dark:bg-slate-950">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">Transfer Hub</h2>
-          <p className="text-slate-500 mt-1">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Transfer Hub</h2>
+          <p className="text-slate-500 dark:text-slate-400 mt-1">
             Move inventory from warehouse clients to stores
           </p>
         </div>

@@ -159,11 +159,11 @@ export default function ReturnsCenter({
     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
       {/* Title Section */}
       <div className="flex-1 min-w-0">
-        <h1 className="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2">
-          <RotateCcw className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600 flex-shrink-0" />
+        <h1 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <RotateCcw className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600 dark:text-indigo-400 flex-shrink-0" />
           <span className="truncate">Returns Center</span>
         </h1>
-        <p className="text-slate-500 text-xs sm:text-sm mt-1 leading-tight">
+        <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm mt-1 leading-tight">
           Manage returns • <span className="font-medium">{warehouseName}</span>
         </p>
       </div>
@@ -197,14 +197,14 @@ export default function ReturnsCenter({
         onWarehouseChange={handleWarehouseChange}
       />
 
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
         <div className="p-6">
           {returnsData.loading ? (
             <div className="flex justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+              <Loader2 className="w-8 h-8 animate-spin text-indigo-600 dark:text-indigo-400" />
             </div>
           ) : returnsData.returns.length === 0 ? (
-            <p className="text-center py-12 text-slate-500">No returns found</p>
+            <p className="text-center py-12 text-slate-500 dark:text-slate-400">No returns found</p>
           ) : (
             <>
               <ReturnsList

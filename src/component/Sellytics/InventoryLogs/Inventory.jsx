@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 import { AnimatePresence } from 'framer-motion';
 import {
   Package, Search, RefreshCw, Wifi, WifiOff, Bell,
-  Filter, History, BarChart3, Scan, Loader2, ChevronLeft, ChevronRight
+  Filter, History, BarChart3, Scan, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { supabase } from '../../../supabaseClient';
 

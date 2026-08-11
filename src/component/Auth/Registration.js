@@ -38,6 +38,7 @@ export default function RegisterAccount() {
   const [otherBusiness, setOtherBusiness] = useState('');
   const [password, setPassword] = useState('');
   const [businessAddress, setBusinessAddress] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
@@ -74,6 +75,9 @@ export default function RegisterAccount() {
     ) {
       newErrors.password =
         'Password must be at least 6 characters, including an uppercase';
+    }
+    if (!phoneNumber || !/^\+?[0-9\s\-()]{7,15}$/.test(phoneNumber)) {
+      newErrors.phoneNumber = 'Please enter a valid phone number.';
     }
     if (!businessAddress || businessAddress.length < 5 || businessAddress.length > 200) {
       newErrors.businessAddress = 'Business address must be 5-200 characters.';
@@ -125,6 +129,7 @@ export default function RegisterAccount() {
           nature_of_business: finalNatureOfBusiness,
           password: hashedPassword,
           business_address: businessAddress,
+          phone_number: phoneNumber,
         },
       ]);
 
@@ -184,6 +189,7 @@ setNatureOfBusiness('');
 setOtherBusiness('');
 setPassword('');
 setBusinessAddress('');
+setPhoneNumber('');
 setErrors({});
       }
 
@@ -369,6 +375,33 @@ setErrors({});
                     animate="visible"
                   >
                     {errors.emailAddress}
+                  </motion.p>
+                )}
+              </div>
+              <div>
+                <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Phone Number
+                </label>
+                <input
+                  type="tel"
+                  id="phoneNumber"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  placeholder="Enter your phone number"
+                  className="w-full py-3 px-4 rounded-xl border-gray-300 dark:border-gray-600 shadow-sm focus:ring-indigo-500 focus:border-indigo-500 text-base dark:bg-gray-800 dark:text-white transition-all duration-200"
+                  required
+                  aria-label="Phone Number input"
+                  aria-describedby={errors.phoneNumber ? 'phoneNumber-error' : undefined}
+                />
+                {errors.phoneNumber && (
+                  <motion.p
+                    id="phoneNumber-error"
+                    className="mt-1 text-sm text-red-600 dark:text-red-400"
+                    variants={errorVariants}
+                    initial="hidden"
+                    animate="visible"
+                  >
+                    {errors.phoneNumber}
                   </motion.p>
                 )}
               </div>

@@ -106,7 +106,7 @@ export default function WarehouseInventory({ warehouseId, clients }) {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2">
 
         {/* Total Products */}
-        <div className="rounded-lgbg-indigo-900 text-white p-2 sm:p-2.5">
+        <div className="rounded-lg bg-indigo-900 text-white p-2 sm:p-2.5">
           <div className="flex items-center gap-1.5 mb-1">
             <div className="w-6 h-6 sm:w-7 sm:h-7 rounded bg-indigo-100 flex items-center justify-center flex-shrink-0">
               <Package className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-indigo-600" />
@@ -154,13 +154,13 @@ export default function WarehouseInventory({ warehouseId, clients }) {
       <div className="space-y-1.5 sm:space-y-2">
         {loading ? (
           <div className="flex items-center justify-center py-8 sm:py-10">
-            <Loader2 className="w-6 h-6 sm:w-8 sm:h-8 animate-spin text-indigo-600" />
+            <Loader2 className="w-6 h-6 sm:w-8 sm:h-8 animate-spin text-indigo-600 dark:text-indigo-400" />
           </div>
         ) : filteredInventory.length === 0 ? (
           <div className="text-center py-8 sm:py-12">
-            <Package className="w-10 h-10 sm:w-12 sm:h-12 text-slate-300 mx-auto mb-2" />
-            <h3 className="font-medium text-xs sm:text-sm text-slate-600">No inventory found</h3>
-            <p className="text-[10px] sm:text-xs text-slate-400 mt-0.5">
+            <Package className="w-10 h-10 sm:w-12 sm:h-12 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
+            <h3 className="font-medium text-xs sm:text-sm text-slate-600 dark:text-slate-400">No inventory found</h3>
+            <p className="text-[10px] sm:text-xs text-slate-400 dark:text-slate-500 mt-0.5">
               {searchQuery ? "Adjust search" : "Add products"}
             </p>
           </div>
@@ -168,24 +168,24 @@ export default function WarehouseInventory({ warehouseId, clients }) {
           filteredInventory.map((item) => (
             <div
               key={item.id}
-              className="p-2 sm:p-2.5 bg-white rounded-lg border border-slate-200 hover:shadow-md transition-shadow"
+              className="p-2 sm:p-2.5 bg-white dark:bg-surface-800 rounded-lg border border-slate-200 dark:border-slate-700/60 hover:shadow-md transition-shadow"
             >
               {/* Top Row: Icon + Product + Tags */}
               <div className="flex items-start gap-1.5 sm:gap-2">
                 {/* Icon */}
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded bg-indigo-100 flex items-center justify-center flex-shrink-0">
-                  <Package className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-600" />
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded bg-indigo-100 dark:bg-indigo-950/60 flex items-center justify-center flex-shrink-0">
+                  <Package className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-600 dark:text-indigo-400" />
                 </div>
 
                 {/* Product Info + Tags */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-1">
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-xs sm:text-sm text-slate-900 truncate leading-tight">
+                      <h3 className="font-semibold text-xs sm:text-sm text-slate-900 dark:text-white truncate leading-tight">
                         {item.product?.product_name}
                       </h3>
                       {item.product?.sku && (
-                        <p className="text-[9px] sm:text-[10px] text-slate-500 mt-0.5 leading-tight">
+                        <p className="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 leading-tight">
                           {item.product.sku}
                         </p>
                       )}
@@ -193,14 +193,14 @@ export default function WarehouseInventory({ warehouseId, clients }) {
 
                     {/* Tags - Right aligned on same line */}
                     <div className="flex flex-wrap gap-0.5 sm:gap-1 justify-end flex-shrink-0 max-w-[40%]">
-                      <span className="px-1 py-0.5 rounded text-[8px] sm:text-[9px] font-medium bg-slate-100 text-slate-600 whitespace-nowrap">
+                      <span className="px-1 py-0.5 rounded text-[8px] sm:text-[9px] font-medium bg-slate-100 dark:bg-surface-700 text-slate-600 dark:text-slate-300 whitespace-nowrap">
                         {item.product?.product_type || "-"}
                       </span>
-                      <span className="px-1 py-0.5 rounded text-[8px] sm:text-[9px] font-medium bg-emerald-100 text-emerald-700 whitespace-nowrap">
+                      <span className="px-1 py-0.5 rounded text-[8px] sm:text-[9px] font-medium bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 whitespace-nowrap">
                         {item.client?.client_name || "Unknown"}
                       </span>
                       {item.product?.is_unique && (
-                        <span className="px-1 py-0.5 rounded text-[8px] sm:text-[9px] font-bold uppercase bg-indigo-100 text-indigo-600">
+                        <span className="px-1 py-0.5 rounded text-[8px] sm:text-[9px] font-bold uppercase bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400">
                           UNQ
                         </span>
                       )}
@@ -210,30 +210,30 @@ export default function WarehouseInventory({ warehouseId, clients }) {
               </div>
 
               {/* Compact Quantities - Single Row */}
-              <div className="mt-1.5 pt-1.5 border-t border-slate-100">
+              <div className="mt-1.5 pt-1.5 border-t border-slate-100 dark:border-slate-700/60">
                 <div className="flex items-center justify-between text-[10px] sm:text-xs">
                   <div className="flex items-center gap-2 sm:gap-3">
                     <div>
-                      <span className="text-slate-500">Tot:</span>
-                      <span className="font-semibold text-slate-900 ml-0.5">{item.quantity || 0}</span>
+                      <span className="text-slate-500 dark:text-slate-400">Tot:</span>
+                      <span className="font-semibold text-slate-900 dark:text-white ml-0.5">{item.quantity || 0}</span>
                     </div>
                     <div>
-                      <span className="text-slate-500">Avl:</span>
-                      <span className="font-semibold text-emerald-600 ml-0.5">{item.available_qty || 0}</span>
+                      <span className="text-slate-500 dark:text-slate-400">Avl:</span>
+                      <span className="font-semibold text-emerald-600 dark:text-emerald-400 ml-0.5">{item.available_qty || 0}</span>
                     </div>
                     <div>
-                      <span className="text-slate-500">Dmg:</span>
-                      <span className="font-semibold text-rose-600 ml-0.5">{item.damaged_qty || 0}</span>
+                      <span className="text-slate-500 dark:text-slate-400">Dmg:</span>
+                      <span className="font-semibold text-rose-600 dark:text-rose-400 ml-0.5">{item.damaged_qty || 0}</span>
                     </div>
                   </div>
 
                   {/* Value + Meta on same line */}
                   <div className="flex items-center gap-2 text-[9px] sm:text-[10px]">
-                    <span className="font-semibold text-slate-900">
+                    <span className="font-semibold text-slate-900 dark:text-white">
                       {item.total_cost > 0 ? formatPrice(item.total_cost) : "-"}
                     </span>
                     {item.updated_by_email && (
-                      <span className="text-slate-400 hidden sm:inline">
+                      <span className="text-slate-400 dark:text-slate-500 hidden sm:inline">
                         • {item.updated_by_email.split('@')[0]}
                       </span>
                     )}

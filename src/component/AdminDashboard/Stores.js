@@ -11,7 +11,6 @@ import {
   Store,
   Mail,
   Phone,
-  Filter,
   Check,
   X,
   Layers

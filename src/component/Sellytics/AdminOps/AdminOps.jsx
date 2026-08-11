@@ -47,7 +47,7 @@ export default function AdminOps({ isStoreUser = false }) {
   const { userPlan, registrationDate } = useDashboardAccess();
   const [shopName, setShopName] = useState('Store Admin');
   const [activeTool, setActiveTool] = useState(null);
-  const [userRole, setUserRole] = useState('owner');
+  const [, setUserRole] = useState('owner');
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
@@ -185,9 +185,9 @@ export default function AdminOps({ isStoreUser = false }) {
   const filteredTools = opsTools.filter((tool) => {
     // If the component is rendered inside the Store Users dashboard, entirely hide the Team Management module
     if (tool.key === 'team' && isStoreUser) return false;
-    
+
     return tool.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
-           tool.desc.toLowerCase().includes(searchQuery.toLowerCase());
+      tool.desc.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
   const renderContent = () => {

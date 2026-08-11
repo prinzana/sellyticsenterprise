@@ -8,7 +8,7 @@ import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import toast from 'react-hot-toast';
 import {
   Plus, RefreshCw, ShoppingCart, History,
-  Wifi, WifiOff, Loader2, Play, Pause
+  Wifi, WifiOff, Play, Pause
 } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
 

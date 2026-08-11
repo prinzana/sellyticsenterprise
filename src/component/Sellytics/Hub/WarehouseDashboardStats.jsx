@@ -61,7 +61,7 @@ const StatCard = ({ title, value, change, icon: Icon, color, delay = 0 }) => {
       className="group relative"
     >
       {/* Card */}
-      <div className={`relative overflow-hidden bg-white rounded-xl border border-slate-200 hover:border-slate-300 transition-all duration-300 hover:shadow-lg hover:shadow-slate-200/50`}>
+      <div className={`relative overflow-hidden bg-white dark:bg-surface-800 rounded-xl border border-slate-200 dark:border-slate-700/60 hover:border-slate-300 dark:hover:border-slate-600 transition-all duration-300 hover:shadow-lg dark:hover:shadow-slate-950/50`}>
         {/* Gradient Background */}
         <div className={`absolute inset-0 bg-gradient-to-br ${colors.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
         
@@ -70,8 +70,8 @@ const StatCard = ({ title, value, change, icon: Icon, color, delay = 0 }) => {
           <div className="flex items-start justify-between gap-2">
             {/* Left: Stats */}
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-slate-500 mb-1 truncate">{title}</p>
-              <p className="text-xl sm:text-2xl font-bold text-slate-900 mb-1 sm:mb-1.5">{value}</p>
+              <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1 truncate">{title}</p>
+              <p className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mb-1 sm:mb-1.5">{value}</p>
               
               {change !== null && change !== undefined && (
                 <div className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-semibold ${
